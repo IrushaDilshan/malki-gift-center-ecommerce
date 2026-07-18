@@ -4,13 +4,13 @@
   <p>
     <strong>A beautifully crafted, modern e-commerce platform for curated gifts.</strong>
   </p>
-  <br />
   
-  <p align="center">
-    <!-- Replace this with the actual image path once saved in the repository -->
-    <img src="./hero-screenshot.png" alt="Malki Gift Center Hero Section" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-  </p>
-
+  <!-- 🚀 LIVE DEMO BUTTON -->
+  <a href="https://malki-gift-center-ecommerce.vercel.app/" target="_blank" style="text-decoration: none;">
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-Visit%20Storefront-orange?style=for-the-badge&logo=vercel" alt="Live Demo" />
+  </a>
+  <br /><br />
+  
   <p align="center">
     <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
     <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
@@ -19,7 +19,10 @@
   </p>
 </div>
 
-<img width="1896" height="1079" alt="Screenshot 2026-07-18 220310" src="https://github.com/user-attachments/assets/efc8f706-e07d-4875-89a2-694875e48092" />
+<p align="center">
+  <img src="./hero-screenshot.png" alt="Malki Gift Center Hero Section" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
+</p>
+
 ---
 
 ## ✨ Features
@@ -43,6 +46,11 @@
 - **Platform:** Vercel / Node.js
 - **Endpoints:** RESTful API for Products, Orders, Categories, and Reviews
 
+## 🔗 Live Deployment
+
+The application is fully hosted and available online:
+- **Frontend Storefront:** [https://malki-gift-center-ecommerce.vercel.app/](https://malki-gift-center-ecommerce.vercel.app/)
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -52,30 +60,5 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/IrushaDilshan/malki-gift-center-ecommerce.git
+   git clone [https://github.com/IrushaDilshan/malki-gift-center-ecommerce.git](https://github.com/IrushaDilshan/malki-gift-center-ecommerce.git)
    cd malki-gift-center-ecommerce
-   ```
-
-2. **Install frontend dependencies**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-3. **Run the development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in browser**
-   Navigate to `http://localhost:5173` to see the storefront.
-
-## 🎨 Design System
-
-- **Primary Colors:** Warm gradients blending Orange, Rose, and Amber for a festive, premium feel.
-- **Backgrounds:** `#FAFAFA` solid base with `bg-white/80` frosted glass layers.
-- **Typography:** **Plus Jakarta Sans** for extreme legibility and a modern editorial look.
-
-## 📝 License
-
-This project is open-source and available under the [MIT License](LICENSE).
