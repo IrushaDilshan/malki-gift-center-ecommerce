@@ -1,6 +1,7 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
@@ -8,8 +9,6 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const settingRoutes = require('./routes/settingRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-
-dotenv.config();
 
 // 2. DB එකට connect කරන්න
 connectDB();
