@@ -38,7 +38,36 @@ const getOrders = async (req, res) => {
     }
 };
 
+// @desc    Update order status
+// @route   PUT /api/orders/:id/status
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!status) {
+            return res.status(400).json({ message: 'Status is required' });
+        }
+
+        const updatedOrder = await Order.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedOrder) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.status(200).json(updatedOrder);
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        res.status(500).json({ message: error.message || 'Server Error' });
+    }
+};
+
 module.exports = {
     createOrder,
-    getOrders
+    getOrders,
+    updateOrderStatus
 };
