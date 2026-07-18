@@ -5,6 +5,7 @@
     <strong>A beautifully crafted, modern e-commerce platform for curated gifts.</strong>
   </p>
   
+<img width="1896" height="1079" alt="Screenshot 2026-07-18 220310" src="https://github.com/user-attachments/assets/4990b3c5-b141-4c2c-852f-468d02e9ed4b" />
   <!-- 🚀 LIVE DEMO BUTTON -->
   <a href="https://malki-gift-center-ecommerce.vercel.app/" target="_blank" style="text-decoration: none;">
     <img src="https://img.shields.io/badge/🚀%20Live%20Demo-Visit%20Storefront-orange?style=for-the-badge&logo=vercel" alt="Live Demo" />
@@ -18,8 +19,6 @@
     <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
   </p>
 </div>
-<img width="1896" height="1079" alt="Screenshot 2026-07-18 220310" src="https://github.com/user-attachments/assets/4990b3c5-b141-4c2c-852f-468d02e9ed4b" />
-
 
 ---
 
