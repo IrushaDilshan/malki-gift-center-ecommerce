@@ -3,12 +3,12 @@ import axios from 'axios'
 import { BadgeCheck, Search, ShoppingCart, Sparkles, Truck, UserCircle, X, Edit, Trash2, ImagePlus, LayoutDashboard, FolderKanban, PlusCircle, ShoppingBag, MessageSquare, Settings, ShieldAlert } from 'lucide-react'
 import logo from './assets/logo.png'
 
-const PRODUCTS_URL = 'http://localhost:5000/api/products'
-const ORDERS_URL = 'http://localhost:5000/api/orders'
-const CATEGORIES_URL = 'http://localhost:5000/api/categories'
-const FEEDBACK_URL = 'http://localhost:5000/api/products/reviews/all'
-const SETTINGS_URL = 'http://localhost:5000/api/settings'
-const ADMIN_SECURITY_URL = 'http://localhost:5000/api/admin/change-password'
+const PRODUCTS_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/products'
+const ORDERS_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/orders'
+const CATEGORIES_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/categories'
+const FEEDBACK_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/products/reviews/all'
+const SETTINGS_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/settings'
+const ADMIN_SECURITY_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/admin/change-password'
 
 function formatPrice(value) {
   const number = Number(value)
@@ -20,8 +20,8 @@ function resolveImageUrl(image) {
   const fallbackImage = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80'
   if (!image || image.startsWith('http://example.com')) return fallbackImage
   if (image.startsWith('http://') || image.startsWith('https://')) return image
-  if (image.startsWith('/')) return `http://localhost:5000${image}`
-  return `http://localhost:5000/${image}`
+  if (image.startsWith('/')) return `https://malki-gift-center-ecommerce.vercel.app${image}`
+  return `https://malki-gift-center-ecommerce.vercel.app/${image}`
 }
 
 function getStatusBadge(status) {
