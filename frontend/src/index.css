@@ -1,3 +1,60 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .animate-rainbow-shimmer {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    border: none !important;
+  }
+  .animate-rainbow-shimmer::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: -2;
+    background: conic-gradient(
+      from 0deg,
+      #ff4545,
+      #ffaa00,
+      #00ff99,
+      #006aff,
+      #ff0095,
+      #ff4545
+    );
+    animation: rainbow-spin 4s linear infinite;
+  }
+  .animate-rainbow-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: #fff7ed; /* Match the bg-orange-50 */
+    z-index: -1;
+    border-radius: inherit;
+  }
+
+  .animate-glow-sway {
+    animation: glow-sway 6s ease-in-out infinite;
+  }
+}
+
+@keyframes rainbow-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glow-sway {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), 0 0 30px rgba(249, 115, 22, 0.3);
+    transform: rotate(-1.5deg) translateY(0);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.7), 0 0 50px rgba(249, 115, 22, 0.6);
+    transform: rotate(1.5deg) translateY(-8px);
+  }
+}

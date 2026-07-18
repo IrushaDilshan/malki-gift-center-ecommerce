@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import { BadgeCheck, Search, ShoppingCart, Sparkles, Truck, UserCircle, X, Edit, Trash2, ImagePlus, LayoutDashboard, FolderKanban, PlusCircle, ShoppingBag, MessageSquare, Settings, ShieldAlert, Menu } from 'lucide-react'
 import logo from './assets/logo.png'
+import AOS from 'aos'
+import 'aos/dist/aos.css'
 
 const PRODUCTS_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/products'
 const ORDERS_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/orders'
@@ -42,15 +44,21 @@ const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, for
   const isInStock = stock > 0
 
   return (
-    <article className="group overflow-hidden rounded-[1.75rem] border border-orange-100 bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col">
-      <div className="relative overflow-hidden cursor-pointer h-60 shrink-0" onClick={() => onSelect(product)}>
-        <img src={resolveImageUrl(displayImage)} alt={product?.title ?? 'Gift product'} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80' }} />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/75 to-transparent p-4 text-white">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-200">{product?.category ?? 'Gift'}</p>
+    <article data-aos="fade-up" className="group flex flex-col overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/80 p-2.5 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(0,0,0,0.12)]">
+      <div className="relative overflow-hidden cursor-pointer h-64 shrink-0 rounded-[2rem]" onClick={() => onSelect(product)}>
+        <img src={resolveImageUrl(displayImage)} alt={product?.title ?? 'Gift product'} className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80' }} />
+        
+        <div className="absolute top-4 left-4 z-10 pointer-events-none rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1.5 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-900">{product?.category ?? 'Gift'}</p>
+        </div>
+        
+        <div className={`absolute top-4 right-4 z-10 pointer-events-none rounded-full backdrop-blur-sm px-3 py-1.5 shadow-sm inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase ${isInStock ? 'bg-emerald-50/90 text-emerald-700' : 'bg-rose-50/90 text-rose-700'}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${isInStock ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+          {isInStock ? 'In Stock' : 'Out'}
         </div>
       </div>
       
-      <div className="flex flex-col flex-1 p-5">
+      <div className="flex flex-col flex-1 px-4 py-5 sm:px-5">
         {images.length > 1 && (
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {images.map((img, idx) => (
@@ -58,27 +66,24 @@ const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, for
                 key={idx} 
                 onMouseEnter={() => setActiveImgIndex(idx)}
                 onClick={(e) => { e.stopPropagation(); setActiveImgIndex(idx); }}
-                className={`h-12 w-12 shrink-0 rounded-lg overflow-hidden border-2 transition-all ${activeImgIndex === idx ? 'border-orange-500 opacity-100 shadow-md scale-105' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-105'}`}
+                className={`h-10 w-10 shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${activeImgIndex === idx ? 'ring-2 ring-orange-400 ring-offset-2 opacity-100 scale-110' : 'ring-1 ring-slate-200 opacity-70 hover:opacity-100 hover:scale-105'}`}
               >
                 <img src={resolveImageUrl(img)} alt={`Thumbnail ${idx}`} className="h-full w-full object-cover" />
               </button>
             ))}
           </div>
         )}
-        <div className="space-y-2 mb-4 flex-1">
-          <h3 className="line-clamp-2 text-lg font-bold text-slate-950 cursor-pointer hover:text-orange-500 transition" onClick={() => onSelect(product)}>{product?.title ?? 'Untitled Product'}</h3>
-          <p className="line-clamp-2 text-sm leading-6 text-slate-500">{product?.description ?? 'A beautifully curated gift.'}</p>
-        </div>
-        <div className="flex items-center justify-between text-sm mb-4">
-          <div>
-            <span className="block text-xs uppercase tracking-[0.22em] text-slate-400">Price</span>
-            <p className="text-2xl font-black text-slate-950">Rs. {formatPrice(product?.price)}</p>
+        
+        <div className="flex items-center justify-between mt-auto pt-2">
+          <div className="flex flex-col pr-4 flex-1">
+            <h3 className="line-clamp-1 text-lg font-extrabold tracking-tight text-slate-900 cursor-pointer hover:text-orange-500 transition-colors" onClick={() => onSelect(product)}>{product?.title ?? 'Untitled Product'}</h3>
+            <p className="line-clamp-1 text-xs leading-relaxed text-slate-500 font-medium mb-1.5">{product?.description ?? 'A beautifully curated gift.'}</p>
+            <p className="text-2xl font-black tracking-tight text-slate-900 mt-0.5"><span className="text-sm font-bold text-slate-400 mr-1.5">Rs.</span>{formatPrice(product?.price)}</p>
           </div>
-          <div className={`rounded-full px-3 py-1 text-xs font-semibold ${isInStock ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>{isInStock ? `${stock} in stock` : 'Out of stock'}</div>
+          <button type="button" disabled={!isInStock} onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="md:w-12 md:h-12 w-11 h-11 flex shrink-0 items-center justify-center rounded-2xl bg-slate-100/80 text-slate-700 hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-200 transition-all duration-300 disabled:opacity-50">
+            <ShoppingCart className="h-5 w-5" />
+          </button>
         </div>
-        <button type="button" disabled={!isInStock} onClick={() => onAddToCart(product)} className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 via-rose-500 to-amber-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-200 transition hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-300/40 active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100">
-          <ShoppingCart className="h-4 w-4" /> Add to Cart
-        </button>
       </div>
     </article>
   )
@@ -127,6 +132,14 @@ function App() {
   const [detailsImageIndex, setDetailsImageIndex] = useState(0)
   const [reviewForm, setReviewForm] = useState({ customerName: '', rating: 5, comment: '' })
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false)
+
+  useEffect(() => {
+    AOS.init({
+      duration: 1000,
+      once: true,
+      easing: 'ease-out',
+    })
+  }, [])
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault()
@@ -1091,29 +1104,29 @@ function App() {
           // --- Store View ---
           <>
             {!searchQuery && (
-              <section className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-[0_20px_80px_rgba(253,186,116,0.25)] backdrop-blur xl:p-10">
+              <section className="relative overflow-hidden rounded-[2rem] border border-slate-100 bg-[#FAFAFA] p-6 shadow-2xl shadow-slate-200/50 xl:p-12">
                 <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-orange-200/30 blur-3xl" />
                 <div className="absolute -bottom-10 left-8 h-40 w-40 rounded-full bg-rose-200/30 blur-3xl" />
                 <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-                  <div className="space-y-6">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700">
+                  <div className="space-y-8">
+                    <span className="animate-rainbow-shimmer inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700">
                       <Truck className="h-4 w-4" />
                       Fresh arrivals, curated for every occasion
                     </span>
                     <div className="space-y-4">
-                      <h2 className="max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl md:text-5xl lg:text-6xl">Beautiful gifts for birthdays, celebrations, and thoughtful moments.</h2>
-                      <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Explore handpicked surprises from Malki Gift Center. Every product card is pulled straight from your backend, so the storefront stays in sync with your inventory.</p>
+                      <h2 data-aos="fade-left" data-aos-delay="100" className="max-w-2xl text-4xl font-extrabold tracking-tight leading-[1.15] text-slate-950 sm:text-5xl md:text-6xl lg:text-[4rem]">Beautiful gifts for birthdays, celebrations, and thoughtful moments.</h2>
+                      <p data-aos="fade-left" data-aos-delay="200" className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Explore handpicked surprises from Malki Gift Center. Every product card is pulled straight from your backend, so the storefront stays in sync with your inventory.</p>
                     </div>
                     <div className="flex flex-wrap gap-3 text-sm font-medium text-slate-700">
-                      <div className="rounded-2xl bg-white px-4 py-3 shadow-sm shadow-orange-100"><span className="block text-2xl font-black text-slate-950">{totalProducts}</span>Gifts visible</div>
-                      <div className="rounded-2xl bg-white px-4 py-3 shadow-sm shadow-orange-100"><span className="block text-2xl font-black text-slate-950">{inStockCount}</span>In stock now</div>
-                      <div className="rounded-2xl bg-white px-4 py-3 shadow-sm shadow-orange-100"><span className="block text-2xl font-black text-slate-950">24/7</span>Browse anytime</div>
+                      <div data-aos="fade-up" data-aos-delay="0" className="rounded-2xl bg-white px-4 py-3 shadow-sm shadow-orange-100"><span className="block text-2xl font-black text-slate-950">{totalProducts}</span>Gifts visible</div>
+                      <div data-aos="fade-up" data-aos-delay="100" className="rounded-2xl bg-white px-4 py-3 shadow-sm shadow-orange-100"><span className="block text-2xl font-black text-slate-950">{inStockCount}</span>In stock now</div>
+                      <div data-aos="fade-up" data-aos-delay="200" className="rounded-2xl bg-white px-4 py-3 shadow-sm shadow-orange-100"><span className="block text-2xl font-black text-slate-950">24/7</span>Browse anytime</div>
                     </div>
                   </div>
                   <div className="relative mx-auto flex w-full max-w-md items-center justify-center">
                     <div className="absolute inset-6 rounded-[2rem] bg-gradient-to-br from-orange-200/70 via-rose-200/70 to-amber-100/70 blur-2xl" />
-                    <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white p-4 shadow-2xl shadow-orange-200/40">
-                      <img src="https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=1200&q=80" alt="Gift arrangement showcase" className="h-72 w-full rounded-[1.5rem] object-cover" />
+                    <div className="animate-glow-sway relative overflow-hidden rounded-3xl border border-white/40 bg-white/60 backdrop-blur-md p-5 shadow-2xl shadow-orange-200/20">
+                      <img src="https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=1200&q=80" alt="Gift arrangement showcase" className="h-80 w-full rounded-2xl object-cover" />
                       <div className="mt-4 space-y-2">
                         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-orange-500">Featured Collection</p>
                         <p className="text-lg font-bold text-slate-950">Elegant gifting, wrapped with care.</p>
