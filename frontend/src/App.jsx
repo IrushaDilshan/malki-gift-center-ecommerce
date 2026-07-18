@@ -20,10 +20,10 @@ function formatPrice(value) {
 
 function resolveImageUrl(image) {
   const fallbackImage = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80'
-  if (!image || image.startsWith('http://example.com')) return fallbackImage
+  if (!image || typeof image !== 'string' || image.startsWith('http://example.com')) return fallbackImage
   if (image.startsWith('http://') || image.startsWith('https://')) return image
   if (image.startsWith('/')) return `https://malki-gift-center-ecommerce.vercel.app${image}`
-  return `https://malki-gift-center-ecommerce.vercel.app/${image}`
+  return `https://malki-gift-center-ecommerce.vercel.app/uploads/${image}`
 }
 
 function getStatusBadge(status) {
@@ -37,7 +37,7 @@ function getStatusBadge(status) {
 const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, formatPrice }) => {
   const [activeImgIndex, setActiveImgIndex] = useState(0)
   
-  const images = product?.images && product.images.length > 0 ? product.images : (product?.image ? [product.image] : [])
+  const images = Array.isArray(product?.images) && product.images.length > 0 ? product.images : (product?.image ? [product.image] : (typeof product?.images === 'string' ? [product.images] : []))
   const displayImage = images[activeImgIndex] || images[0]
 
   const stock = Number(product?.stock) || 0
