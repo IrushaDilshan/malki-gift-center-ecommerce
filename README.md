@@ -1,4 +1,3 @@
-
 <div align="center">
   <br />
   <h1>🎁 Malki Gift Center</h1>
@@ -20,6 +19,7 @@
   </p>
 </div>
 
+<img width="1896" height="1079" alt="Screenshot 2026-07-18 220310" src="https://github.com/user-attachments/assets/efc8f706-e07d-4875-89a2-694875e48092" />
 ---
 
 ## ✨ Features
