@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { BadgeCheck, Search, ShoppingCart, Sparkles, Truck, UserCircle, X, Edit, Trash2, ImagePlus, LayoutDashboard, FolderKanban, PlusCircle, ShoppingBag, MessageSquare, Settings, ShieldAlert } from 'lucide-react'
+import { BadgeCheck, Search, ShoppingCart, Sparkles, Truck, UserCircle, X, Edit, Trash2, ImagePlus, LayoutDashboard, FolderKanban, PlusCircle, ShoppingBag, MessageSquare, Settings, ShieldAlert, Menu } from 'lucide-react'
 import logo from './assets/logo.png'
 
 const PRODUCTS_URL = 'https://malki-gift-center-ecommerce.vercel.app/api/products'
@@ -102,6 +102,7 @@ function App() {
   // Admin state
   const [isAdminView, setIsAdminView] = useState(window.location.pathname.includes('/admin'))
   const [adminTab, setAdminTab] = useState('dashboard')
+  const [isAdminMobileMenuOpen, setIsAdminMobileMenuOpen] = useState(false)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [orderSearch, setOrderSearch] = useState('')
@@ -557,41 +558,56 @@ function App() {
       )}
 
 
-      <main className={isAdminView ? "flex flex-1 overflow-hidden items-stretch" : "mx-auto w-full max-w-[95%] md:max-w-[98%] pb-16 pt-8"}>
+      <main className={isAdminView ? "flex flex-1 overflow-hidden items-stretch relative bg-slate-50/50" : "mx-auto w-full max-w-[95%] md:max-w-[98%] pb-16 pt-8"}>
         {isAdminView ? (
           <>
+            {/* Mobile Top Bar / Hamburger */}
+            <div className="md:hidden absolute top-5 left-5 z-40">
+              <button onClick={() => setIsAdminMobileMenuOpen(true)} className="p-2.5 bg-white text-slate-900 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-slate-200 hover:bg-slate-50 transition-colors">
+                <Menu className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Mobile Overlay */}
+            {isAdminMobileMenuOpen && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 md:hidden" onClick={() => setIsAdminMobileMenuOpen(false)} />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-64 bg-slate-900 text-white flex flex-col h-full border-r border-slate-800 flex-shrink-0 select-none p-6 gap-2">
-              <div className="mb-6 px-4">
+            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col h-full border-r border-slate-800 flex-shrink-0 select-none p-6 gap-2 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isAdminMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
+              <div className="mb-6 px-4 flex justify-between items-center">
                 <img src={logo} alt="Admin Logo" className="h-12 w-auto object-contain" />
+                <button className="md:hidden text-slate-400 hover:text-white p-1" onClick={() => setIsAdminMobileMenuOpen(false)}>
+                  <X className="h-5 w-5" />
+                </button>
               </div>
               <h3 className="text-white/50 text-xs font-bold uppercase tracking-wider mb-4 px-4">Admin Menu</h3>
               
-              <button onClick={() => setAdminTab('dashboard')} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'dashboard' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+              <button onClick={() => { setAdminTab('dashboard'); setIsAdminMobileMenuOpen(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'dashboard' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
                 <LayoutDashboard className="h-5 w-5" /> Dashboard
               </button>
-              <button onClick={() => setAdminTab('categories')} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'categories' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+              <button onClick={() => { setAdminTab('categories'); setIsAdminMobileMenuOpen(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'categories' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
                 <FolderKanban className="h-5 w-5" /> Categories
               </button>
-              <button onClick={() => setAdminTab('add-item')} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'add-item' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+              <button onClick={() => { setAdminTab('add-item'); setIsAdminMobileMenuOpen(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'add-item' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
                 <PlusCircle className="h-5 w-5" /> Manage Products
               </button>
-              <button onClick={() => setAdminTab('orders')} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'orders' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+              <button onClick={() => { setAdminTab('orders'); setIsAdminMobileMenuOpen(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'orders' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
                 <ShoppingBag className="h-5 w-5" /> Orders
               </button>
-              <button onClick={() => setAdminTab('feedback')} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'feedback' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+              <button onClick={() => { setAdminTab('feedback'); setIsAdminMobileMenuOpen(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'feedback' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
                 <MessageSquare className="h-5 w-5" /> Feedback
               </button>
-              <button onClick={() => setAdminTab('settings')} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'settings' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+              <button onClick={() => { setAdminTab('settings'); setIsAdminMobileMenuOpen(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'settings' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
                 <Settings className="h-5 w-5" /> Settings
               </button>
-              <button onClick={() => setAdminTab('security')} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'security' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+              <button onClick={() => { setAdminTab('security'); setIsAdminMobileMenuOpen(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'security' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
                 <ShieldAlert className="h-5 w-5" /> Security
               </button>
             </aside>
 
             {/* Content Area */}
-            <div className="flex-1 p-8 overflow-y-auto h-full w-full">
+            <div className="flex-1 p-6 pt-20 md:p-8 overflow-y-auto h-full w-full">
               {adminTab === 'dashboard' && (
                 <div>
                   <h2 className="text-3xl font-black text-slate-900 mb-8">Dashboard Overview</h2>
