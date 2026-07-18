@@ -402,32 +402,32 @@ function App() {
   return (
     <div className={isAdminView ? "h-screen w-full flex flex-col overflow-hidden bg-slate-50 text-slate-900" : "w-full min-h-screen bg-[#FFFDF9] flex flex-col items-center text-slate-900"}>
       <header className={isAdminView ? "z-30 border-b border-white/60 bg-white/80 shadow-[0_10px_40px_rgba(255,170,102,0.12)] backdrop-blur-xl w-full flex-shrink-0" : "w-full sticky top-0 z-50 bg-white shadow-sm transition-all duration-300"}>
-        <div className="mx-auto w-full max-w-[98%] md:max-w-[95%] py-2 md:py-3 lg:py-4">
-          <div className="flex flex-row items-center justify-between gap-2 md:gap-4">
+        <div className="mx-auto w-full max-w-[98%] md:max-w-[95%] py-4 md:py-5 lg:py-6">
+          <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
             
             {/* Logo block */}
-            <div className="flex items-center gap-1.5 md:gap-2 shrink-0 max-w-[35%] sm:max-w-[40%]">
-              <img src={logo} alt="Malki Gift Center Logo" className="h-8 md:h-10 w-auto object-contain shrink-0" />
+            <div className="flex items-center gap-2 md:gap-3 shrink-0 max-w-[45%] sm:max-w-[50%]">
+              <img src={logo} alt="Malki Gift Center Logo" className="h-10 md:h-12 lg:h-14 w-auto object-contain shrink-0" />
               <div className="flex flex-col justify-center overflow-hidden">
-                <p className="hidden md:block text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 leading-none mb-0.5">Gift Store</p>
-                <h1 className="text-[11px] sm:text-sm md:text-xl font-black tracking-tight text-slate-950 leading-none truncate">Malki Gift Center</h1>
+                <p className="hidden md:block text-xs font-bold uppercase tracking-[0.2em] text-orange-500 leading-none mb-1">Gift Store</p>
+                <h1 className="text-sm sm:text-base md:text-2xl font-black tracking-tight text-slate-950 leading-none truncate">Malki Gift Center</h1>
               </div>
             </div>
 
             {/* Search and Cart block */}
-            <div className="flex flex-1 items-center justify-end gap-2">
+            <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
               {!isAdminView && (
-                <label className="flex flex-1 items-center gap-2 rounded-full border border-orange-100 bg-slate-50 px-3 md:px-4 py-2 md:py-2.5 shadow-sm ring-1 ring-transparent transition focus-within:border-orange-300 focus-within:bg-white focus-within:ring-orange-200">
-                  <Search className="h-4 w-4 md:h-5 md:w-5 text-orange-400 shrink-0" />
-                  <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search gifts..." className="w-full bg-transparent text-xs md:text-sm text-slate-700 outline-none placeholder:text-slate-400 min-w-[50px]" />
+                <label className="flex flex-1 items-center gap-2 md:gap-3 rounded-full border border-orange-100 bg-slate-50 px-4 py-2.5 md:py-3 shadow-sm ring-1 ring-transparent transition focus-within:border-orange-300 focus-within:bg-white focus-within:ring-orange-200">
+                  <Search className="h-5 w-5 md:h-6 md:w-6 text-orange-400 shrink-0" />
+                  <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search gifts..." className="w-full bg-transparent text-sm md:text-base text-slate-700 outline-none placeholder:text-slate-400 min-w-[50px]" />
                 </label>
               )}
 
               {!isAdminView && (
-                <button onClick={() => setIsCartOpen(true)} className="shrink-0 p-2 md:p-2.5 hover:bg-orange-50 bg-white border border-orange-100 shadow-sm rounded-full cursor-pointer relative transition-all flex items-center justify-center">
-                  <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 text-orange-500" />
+                <button onClick={() => setIsCartOpen(true)} className="shrink-0 p-3 md:p-3.5 hover:bg-orange-50 bg-white border border-orange-100 shadow-sm rounded-full cursor-pointer relative transition-all flex items-center justify-center">
+                  <ShoppingCart className="h-6 w-6 md:h-7 md:w-7 text-orange-500" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] md:text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white animate-fade-in">
+                    <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] md:text-xs font-bold w-5 h-5 md:w-6 md:h-6 flex items-center justify-center rounded-full border-2 border-white animate-fade-in">
                       {cartCount}
                     </span>
                   )}
