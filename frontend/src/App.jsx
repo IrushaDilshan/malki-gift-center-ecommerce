@@ -401,30 +401,30 @@ function App() {
 
   return (
     <div className={isAdminView ? "h-screen w-full flex flex-col overflow-hidden bg-slate-50 text-slate-900" : "w-full min-h-screen bg-[#FFFDF9] flex flex-col items-center text-slate-900"}>
-      <header className={isAdminView ? "z-30 border-b border-white/60 bg-white/80 shadow-[0_10px_40px_rgba(255,170,102,0.12)] backdrop-blur-xl w-full flex-shrink-0" : "w-full sticky top-0 z-50 bg-[#FFFDF9]/90 backdrop-blur-md shadow-sm transition-all duration-300"}>
-        <div className="mx-auto flex w-full max-w-[95%] md:max-w-[98%] flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="Malki Gift Center Logo" className="h-12 w-auto object-contain" />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-orange-500">Gift Store</p>
-              <h1 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Malki Gift Center</h1>
+      <header className={isAdminView ? "z-30 border-b border-white/60 bg-white/80 shadow-[0_10px_40px_rgba(255,170,102,0.12)] backdrop-blur-xl w-full flex-shrink-0" : "w-full sticky top-0 z-50 bg-white shadow-sm transition-all duration-300"}>
+        <div className="mx-auto w-full max-w-[95%] md:max-w-[98%] py-3 lg:py-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-2">
+              <img src={logo} alt="Malki Gift Center Logo" className="h-10 w-auto object-contain sm:h-12 shrink-0" />
+              <div className="flex flex-col justify-center">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 sm:text-xs leading-none mb-0.5">Gift Store</p>
+                <h1 className="text-xl font-black tracking-tight text-slate-950 sm:text-2xl md:text-3xl leading-none">Malki Gift Center</h1>
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-1 flex-col gap-3 lg:max-w-xl lg:flex-row lg:items-center lg:justify-end">
-            {!isAdminView && (
-              <label className="flex w-full items-center gap-3 rounded-full border border-orange-100 bg-white px-4 py-3 shadow-sm shadow-orange-100/60 ring-1 ring-transparent transition focus-within:border-orange-300 focus-within:ring-orange-200 lg:max-w-md">
-                <Search className="h-5 w-5 text-orange-400" />
-                <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search gifts..." className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
-              </label>
-            )}
-
-            <div className="flex items-center justify-between gap-3 lg:justify-center">
+            <div className="flex w-full items-center gap-2 lg:max-w-xl lg:justify-end">
               {!isAdminView && (
-                <button onClick={() => setIsCartOpen(true)} className="p-3 hover:bg-orange-50 bg-white border border-orange-100 shadow-sm shadow-orange-100/60 rounded-full cursor-pointer relative transition-all flex items-center justify-center">
-                  <ShoppingCart className="h-6 w-6 text-orange-500" />
+                <label className="flex flex-1 items-center gap-2 rounded-full border border-orange-100 bg-slate-50 px-4 py-2.5 shadow-sm ring-1 ring-transparent transition focus-within:border-orange-300 focus-within:bg-white focus-within:ring-orange-200">
+                  <Search className="h-5 w-5 text-orange-400 shrink-0" />
+                  <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search gifts..." className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
+                </label>
+              )}
+
+              {!isAdminView && (
+                <button onClick={() => setIsCartOpen(true)} className="shrink-0 p-2.5 hover:bg-orange-50 bg-white border border-orange-100 shadow-sm rounded-full cursor-pointer relative transition-all flex items-center justify-center">
+                  <ShoppingCart className="h-5 w-5 text-orange-500" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white animate-fade-in">
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white animate-fade-in">
                       {cartCount}
                     </span>
                   )}
@@ -1097,7 +1097,7 @@ function App() {
                       Fresh arrivals, curated for every occasion
                     </span>
                     <div className="space-y-4">
-                      <h2 className="max-w-2xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">Beautiful gifts for birthdays, celebrations, and thoughtful moments.</h2>
+                      <h2 className="max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl md:text-5xl lg:text-6xl">Beautiful gifts for birthdays, celebrations, and thoughtful moments.</h2>
                       <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Explore handpicked surprises from Malki Gift Center. Every product card is pulled straight from your backend, so the storefront stays in sync with your inventory.</p>
                     </div>
                     <div className="flex flex-wrap gap-3 text-sm font-medium text-slate-700">
