@@ -1,4 +1,4 @@
-<img width="1890" height="859" alt="Screenshot 2026-07-18 215756" src="https://github.com/user-attachments/assets/5124aadc-5596-4b01-88cf-0f1bfcc5bdc3" />
+
 <div align="center">
   <br />
   <h1>🎁 Malki Gift Center</h1>
