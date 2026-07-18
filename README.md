@@ -18,10 +18,8 @@
     <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
   </p>
 </div>
+<img width="1896" height="1079" alt="Screenshot 2026-07-18 220310" src="https://github.com/user-attachments/assets/4990b3c5-b141-4c2c-852f-468d02e9ed4b" />
 
-<p align="center">
-  <img src="./hero-screenshot.png" alt="Malki Gift Center Hero Section" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</p>
 
 ---
 
@@ -49,7 +47,7 @@
 ## 🔗 Live Deployment
 
 The application is fully hosted and available online:
-- **Frontend Storefront:** [https://malki-gift-center-ecommerce.vercel.app/](https://malki-gift-center-ecommerce.vercel.app/)
+- **Frontend Storefront:** [https://malki-gift-center-ecommerce.vercel.app/](https://malkigifts.vercel.app/)
 
 ## 🚀 Getting Started
 
