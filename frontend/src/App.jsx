@@ -3,6 +3,8 @@ import axios from 'axios'
 import { BadgeCheck, Search, ShoppingCart, Sparkles, Truck, UserCircle, X, Edit, Trash2, ImagePlus, LayoutDashboard, FolderKanban, PlusCircle, ShoppingBag, MessageSquare, Settings, ShieldAlert, Menu, Play } from 'lucide-react'
 import logo from './assets/logo.png'
 import heroImg from './assets/hero.png'
+import MalkiGiftHero from './components/MalkiGiftHero'
+import GiftUnboxingCanvas from './components/GiftUnboxingCanvas'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 
@@ -37,7 +39,7 @@ function getStatusBadge(status) {
 
 const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, formatPrice }) => {
   const [activeImgIndex, setActiveImgIndex] = useState(0)
-  
+
   const images = Array.isArray(product?.images) && product.images.length > 0 ? product.images : (product?.image ? [product.image] : (typeof product?.images === 'string' ? [product.images] : []))
   const displayImage = images[activeImgIndex] || images[0]
 
@@ -48,23 +50,23 @@ const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, for
     <article data-aos="fade-up" className="group flex flex-col overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/80 p-2.5 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(0,0,0,0.12)]">
       <div className="relative overflow-hidden cursor-pointer h-64 shrink-0 rounded-[2rem]" onClick={() => onSelect(product)}>
         <img src={resolveImageUrl(displayImage)} alt={product?.title ?? 'Gift product'} className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80' }} />
-        
+
         <div className="absolute top-4 left-4 z-10 pointer-events-none rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1.5 shadow-sm">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-900">{product?.category ?? 'Gift'}</p>
         </div>
-        
+
         <div className={`absolute top-4 right-4 z-10 pointer-events-none rounded-full backdrop-blur-sm px-3 py-1.5 shadow-sm inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase ${isInStock ? 'bg-emerald-50/90 text-emerald-700' : 'bg-rose-50/90 text-rose-700'}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${isInStock ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
           {isInStock ? 'In Stock' : 'Out'}
         </div>
       </div>
-      
+
       <div className="flex flex-col flex-1 px-4 py-5 sm:px-5">
         {images.length > 1 && (
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
             {images.map((img, idx) => (
-              <button 
-                key={idx} 
+              <button
+                key={idx}
                 onMouseEnter={() => setActiveImgIndex(idx)}
                 onClick={(e) => { e.stopPropagation(); setActiveImgIndex(idx); }}
                 className={`h-10 w-10 shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${activeImgIndex === idx ? 'ring-2 ring-orange-400 ring-offset-2 opacity-100 scale-110' : 'ring-1 ring-slate-200 opacity-70 hover:opacity-100 hover:scale-105'}`}
@@ -74,7 +76,7 @@ const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, for
             ))}
           </div>
         )}
-        
+
         <div className="flex items-center justify-between mt-auto pt-2">
           <div className="flex flex-col pr-4 flex-1">
             <h3 className="line-clamp-1 text-lg font-extrabold tracking-tight text-slate-900 cursor-pointer hover:text-orange-500 transition-colors" onClick={() => onSelect(product)}>{product?.title ?? 'Untitled Product'}</h3>
@@ -96,7 +98,7 @@ function App() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  
+
   // Cart state
   const [cartItems, setCartItems] = useState([])
   const [isCheckingOut, setIsCheckingOut] = useState(false)
@@ -222,8 +224,8 @@ function App() {
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      const matchesSearch = order.customerName?.toLowerCase().includes(orderSearch.toLowerCase()) || 
-                            order.phone?.includes(orderSearch)
+      const matchesSearch = order.customerName?.toLowerCase().includes(orderSearch.toLowerCase()) ||
+        order.phone?.includes(orderSearch)
       const matchesStatus = statusFilter === 'All' || order.status === statusFilter
       return matchesSearch && matchesStatus
     })
@@ -256,13 +258,13 @@ function App() {
     try {
       const deliveryFee = province === 'Western' ? 350 : 450
       const finalTotal = cartTotal + deliveryFee
-      
+
       const orderData = {
         customerName: checkoutForm.customerName,
         phone: checkoutForm.phone,
         address: checkoutForm.address,
-        items: cartItems.map(item => ({ 
-          productId: item.product?._id || item.product?.id, 
+        items: cartItems.map(item => ({
+          productId: item.product?._id || item.product?.id,
           productTitle: item.product?.title,
           quantity: item.quantity,
           price: item.product?.price
@@ -276,9 +278,9 @@ function App() {
       setIsCheckingOut(false)
       setIsCartOpen(false)
       setCheckoutForm({ customerName: '', phone: '', address: '' })
-      
+
       if (isAdminView) {
-        axios.get(ORDERS_URL).then(res => setOrders(res.data)).catch(() => {})
+        axios.get(ORDERS_URL).then(res => setOrders(res.data)).catch(() => { })
       }
     } catch (error) {
       alert(`Checkout failed: ${error.response?.data?.message || 'Please try again.'}`)
@@ -346,9 +348,9 @@ function App() {
     e.preventDefault()
     if (securityData.newPassword !== securityData.confirmPassword) return alert("Passwords don't match!")
     try {
-      await axios.post(ADMIN_SECURITY_URL, { 
-        currentPassword: securityData.currentPassword, 
-        newPassword: securityData.newPassword 
+      await axios.post(ADMIN_SECURITY_URL, {
+        currentPassword: securityData.currentPassword,
+        newPassword: securityData.newPassword
       })
       alert('Password updated successfully!')
       setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' })
@@ -418,7 +420,7 @@ function App() {
       <header className={isAdminView ? "z-30 border-b border-white/60 bg-white/80 shadow-[0_10px_40px_rgba(255,170,102,0.12)] backdrop-blur-xl w-full flex-shrink-0" : "w-full sticky top-0 z-50 bg-white shadow-sm transition-all duration-300"}>
         <div className="mx-auto w-full max-w-[98%] md:max-w-[95%] py-4 md:py-5 lg:py-6">
           <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
-            
+
             {/* Logo block */}
             <div className="flex items-center gap-2 md:gap-3 shrink-0 max-w-[45%] sm:max-w-[50%]">
               <img src={logo} alt="Malki Gift Center Logo" className="h-10 md:h-12 lg:h-14 w-auto object-contain shrink-0" />
@@ -467,7 +469,7 @@ function App() {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             {!isCheckingOut ? (
               <>
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -491,7 +493,7 @@ function App() {
                           </div>
                           <div className="flex items-center justify-between mt-2">
                             <p className="text-sm font-black text-slate-900">Rs. {formatPrice(item.product?.price * item.quantity)}</p>
-                            
+
                             <div className="flex items-center gap-3 bg-white rounded-full px-2 py-1 shadow-sm border border-slate-200">
                               <button onClick={() => updateCartQuantity(item.product?._id || item.product?.id, item.quantity - 1)} className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition font-bold text-lg leading-none pb-0.5">-</button>
                               <span className="text-sm font-bold text-slate-900 w-4 text-center">{item.quantity}</span>
@@ -506,7 +508,7 @@ function App() {
                     ))
                   )}
                 </div>
-                
+
                 {cartItems.length > 0 && (
                   <div className="border-t border-slate-100 bg-white p-6 space-y-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
                     <div className="flex justify-between items-end">
@@ -526,15 +528,15 @@ function App() {
                   <p className="text-slate-600 font-medium text-sm">Order Summary</p>
                   <p className="text-3xl font-black text-slate-900">Rs. {formatPrice(cartTotal + (province === 'Western' ? 350 : 450))}</p>
                 </div>
-                
+
                 <form onSubmit={handlePlaceOrder} className="p-6 space-y-5 flex-1 overflow-y-auto">
                   <div>
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Customer Name</label>
-                    <input required type="text" value={checkoutForm.customerName} onChange={e => setCheckoutForm({...checkoutForm, customerName: e.target.value})} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 bg-slate-50" placeholder="John Doe" />
+                    <input required type="text" value={checkoutForm.customerName} onChange={e => setCheckoutForm({ ...checkoutForm, customerName: e.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 bg-slate-50" placeholder="John Doe" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Phone Number</label>
-                    <input required type="tel" value={checkoutForm.phone} onChange={e => setCheckoutForm({...checkoutForm, phone: e.target.value})} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 bg-slate-50" placeholder="07XXXXXXXX" />
+                    <input required type="tel" value={checkoutForm.phone} onChange={e => setCheckoutForm({ ...checkoutForm, phone: e.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-orange-400 bg-slate-50" placeholder="07XXXXXXXX" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Select Province</label>
@@ -545,9 +547,9 @@ function App() {
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Delivery Address</label>
-                    <textarea required rows={4} value={checkoutForm.address} onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none resize-none focus:border-orange-400 bg-slate-50" placeholder="Your full address..." />
+                    <textarea required rows={4} value={checkoutForm.address} onChange={e => setCheckoutForm({ ...checkoutForm, address: e.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none resize-none focus:border-orange-400 bg-slate-50" placeholder="Your full address..." />
                   </div>
-                  
+
                   <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-3 mt-4">
                     <div className="flex justify-between text-slate-600 text-sm">
                       <span>Items Total</span>
@@ -600,7 +602,7 @@ function App() {
                 </button>
               </div>
               <h3 className="text-white/50 text-xs font-bold uppercase tracking-wider mb-4 px-4">Admin Menu</h3>
-              
+
               <button onClick={() => { setAdminTab('dashboard'); setIsAdminMobileMenuOpen(false); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${adminTab === 'dashboard' ? 'bg-orange-500 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
                 <LayoutDashboard className="h-5 w-5" /> Dashboard
               </button>
@@ -651,7 +653,7 @@ function App() {
                         <h3 className="text-xl font-bold text-slate-900">Sales Analytics Overview</h3>
                         <p className="text-sm font-medium text-slate-500 mt-1">Showing revenue trend for the last 7 days</p>
                       </div>
-                      
+
                       <div className="relative w-full flex-1 min-h-[240px] flex items-end">
                         {/* Y-axis labels */}
                         <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-xs font-bold text-slate-400">
@@ -661,14 +663,14 @@ function App() {
                           <span>Rs. 2.5k</span>
                           <span>0</span>
                         </div>
-                        
+
                         {/* SVG Chart Area */}
                         <div className="absolute left-16 right-2 top-2 bottom-6">
                           {/* Horizontal grid lines */}
                           <div className="absolute inset-0 flex flex-col justify-between">
                             {[...Array(5)].map((_, i) => <div key={i} className="w-full border-t border-slate-100/80 h-0" />)}
                           </div>
-                          
+
                           {/* The SVG curve */}
                           <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
                             <defs>
@@ -681,7 +683,7 @@ function App() {
                             <path d="M0,85 C15,75 25,90 40,60 C55,30 65,50 80,35 C90,25 95,20 100,15 L100,100 L0,100 Z" fill="url(#chartGradient)" />
                             {/* Stroke Line */}
                             <path d="M0,85 C15,75 25,90 40,60 C55,30 65,50 80,35 C90,25 95,20 100,15" fill="none" stroke="#f97316" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-                            
+
                             {/* Data Point Circles */}
                             <circle cx="0" cy="85" r="3" fill="#fff" stroke="#f97316" strokeWidth="2" className="drop-shadow-sm" />
                             <circle cx="40" cy="60" r="3" fill="#fff" stroke="#f97316" strokeWidth="2" className="drop-shadow-sm" />
@@ -689,7 +691,7 @@ function App() {
                             <circle cx="100" cy="15" r="3" fill="#fff" stroke="#f97316" strokeWidth="2" className="drop-shadow-sm" />
                           </svg>
                         </div>
-                        
+
                         {/* X-axis labels */}
                         <div className="absolute left-16 right-2 bottom-0 flex justify-between text-[10px] sm:text-xs font-bold text-slate-400">
                           <span>Day 1</span>
@@ -755,28 +757,28 @@ function App() {
                     <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-6 h-fit shadow-sm">
                       <h3 className="text-lg font-bold text-slate-900 mb-6">{editingProductId ? 'Edit Product' : 'Add New Product'}</h3>
                       <form onSubmit={handleProductSubmit} className="space-y-4">
-                        <input required type="text" value={productForm.title} onChange={e => setProductForm({...productForm, title: e.target.value})} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Product Name" />
-                        <textarea required rows={3} value={productForm.description} onChange={e => setProductForm({...productForm, description: e.target.value})} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none resize-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Product details..." />
+                        <input required type="text" value={productForm.title} onChange={e => setProductForm({ ...productForm, title: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Product Name" />
+                        <textarea required rows={3} value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none resize-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Product details..." />
                         <div className="grid grid-cols-2 gap-4">
-                          <input required type="number" min="0" value={productForm.price} onChange={e => setProductForm({...productForm, price: e.target.value})} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Price" />
-                          <input required type="number" min="0" value={productForm.stock} onChange={e => setProductForm({...productForm, stock: e.target.value})} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Stock" />
+                          <input required type="number" min="0" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Price" />
+                          <input required type="number" min="0" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Stock" />
                         </div>
-                        <select required value={productForm.category} onChange={e => setProductForm({...productForm, category: e.target.value})} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white">
+                        <select required value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white">
                           <option value="">Select Category</option>
                           {categories.map(cat => (
                             <option key={cat._id} value={cat.name}>{cat.name}</option>
                           ))}
                         </select>
-                        
+
                         <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
                           <ImagePlus className="h-5 w-5" />
                           <span className="truncate max-w-[200px]">{productImages.length > 0 ? `${productImages.length} file(s) selected` : (editingProductId ? 'Change Images (Optional)' : 'Upload Images')}</span>
                           <input type="file" multiple name="images" accept="image/*" className="hidden" onChange={e => setProductImages(Array.from(e.target.files))} />
                         </label>
-                        
+
                         <div className="pt-4 flex gap-3">
                           {editingProductId && (
-                            <button type="button" onClick={() => { setEditingProductId(null); setProductForm({title:'',description:'',price:'',category:'',stock:''}); setProductImage(null); }} className="flex-1 rounded-xl bg-slate-200 py-3 text-sm font-bold text-slate-700 hover:bg-slate-300 transition-colors">Cancel</button>
+                            <button type="button" onClick={() => { setEditingProductId(null); setProductForm({ title: '', description: '', price: '', category: '', stock: '' }); setProductImage(null); }} className="flex-1 rounded-xl bg-slate-200 py-3 text-sm font-bold text-slate-700 hover:bg-slate-300 transition-colors">Cancel</button>
                           )}
                           <button type="submit" disabled={isProductSubmitting} className="flex-[2] rounded-xl bg-slate-900 py-3 text-sm font-bold text-white shadow hover:bg-slate-800 disabled:opacity-70 transition-colors">
                             {isProductSubmitting ? 'Saving...' : (editingProductId ? 'Update' : 'Add')}
@@ -784,7 +786,7 @@ function App() {
                         </div>
                       </form>
                     </div>
-                    
+
                     <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
                       <div className="overflow-x-auto h-full max-h-[600px]">
                         <table className="w-full text-left text-sm text-slate-600">
@@ -826,16 +828,16 @@ function App() {
               {adminTab === 'orders' && (
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)] mt-6">
                   <h2 className="text-3xl font-black text-slate-900 mb-8">Order Management</h2>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <input 
-                      type="text" 
-                      placeholder="Search by customer name or phone..." 
+                    <input
+                      type="text"
+                      placeholder="Search by customer name or phone..."
                       value={orderSearch}
                       onChange={(e) => setOrderSearch(e.target.value)}
                       className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white"
                     />
-                    <select 
+                    <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
                       className="w-full sm:w-48 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white"
@@ -919,19 +921,19 @@ function App() {
                   <form onSubmit={handleSaveSettings} className="max-w-xl space-y-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
                       <label className="text-sm font-bold text-slate-700">Contact Phone</label>
-                      <input type="text" value={storeSettings.phone} onChange={e => setStoreSettings({...storeSettings, phone: e.target.value})} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
+                      <input type="text" value={storeSettings.phone} onChange={e => setStoreSettings({ ...storeSettings, phone: e.target.value })} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
                     </div>
                     <div>
                       <label className="text-sm font-bold text-slate-700">Contact Email</label>
-                      <input type="email" value={storeSettings.email} onChange={e => setStoreSettings({...storeSettings, email: e.target.value})} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
+                      <input type="email" value={storeSettings.email} onChange={e => setStoreSettings({ ...storeSettings, email: e.target.value })} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
                     </div>
                     <div>
                       <label className="text-sm font-bold text-slate-700">Store Address</label>
-                      <textarea rows={2} value={storeSettings.address} onChange={e => setStoreSettings({...storeSettings, address: e.target.value})} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none resize-none focus:border-orange-400" />
+                      <textarea rows={2} value={storeSettings.address} onChange={e => setStoreSettings({ ...storeSettings, address: e.target.value })} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none resize-none focus:border-orange-400" />
                     </div>
                     <div>
                       <label className="text-sm font-bold text-slate-700">Delivery Charge (Rs.)</label>
-                      <input type="number" min="0" value={storeSettings.deliveryCharge} onChange={e => setStoreSettings({...storeSettings, deliveryCharge: Number(e.target.value)})} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
+                      <input type="number" min="0" value={storeSettings.deliveryCharge} onChange={e => setStoreSettings({ ...storeSettings, deliveryCharge: Number(e.target.value) })} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
                     </div>
                     <button type="submit" className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-200">Save Settings</button>
                   </form>
@@ -944,15 +946,15 @@ function App() {
                   <form onSubmit={handleChangePassword} className="max-w-md space-y-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <div>
                       <label className="text-sm font-bold text-slate-700">Current Password</label>
-                      <input required type="password" value={securityData.currentPassword} onChange={e => setSecurityData({...securityData, currentPassword: e.target.value})} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
+                      <input required type="password" value={securityData.currentPassword} onChange={e => setSecurityData({ ...securityData, currentPassword: e.target.value })} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
                     </div>
                     <div>
                       <label className="text-sm font-bold text-slate-700">New Password</label>
-                      <input required type="password" value={securityData.newPassword} onChange={e => setSecurityData({...securityData, newPassword: e.target.value})} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
+                      <input required type="password" value={securityData.newPassword} onChange={e => setSecurityData({ ...securityData, newPassword: e.target.value })} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
                     </div>
                     <div>
                       <label className="text-sm font-bold text-slate-700">Confirm New Password</label>
-                      <input required type="password" value={securityData.confirmPassword} onChange={e => setSecurityData({...securityData, confirmPassword: e.target.value})} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
+                      <input required type="password" value={securityData.confirmPassword} onChange={e => setSecurityData({ ...securityData, confirmPassword: e.target.value })} className="w-full mt-1 rounded-xl border border-slate-200 px-4 py-2 outline-none focus:border-orange-400" />
                     </div>
                     <button type="submit" className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition">Update Password</button>
                   </form>
@@ -969,10 +971,10 @@ function App() {
                 <span className="text-xl leading-none font-medium text-slate-500 group-hover:text-slate-900 transition-colors">&#8592;</span>
               </button>
             </div>
-            
+
             {/* Main Content Grid Wrapper */}
             <div className="w-full max-w-7xl mx-auto px-6 md:px-12 py-8 grid grid-cols-1 md:grid-cols-2 gap-12 flex-1">
-              
+
               {/* Left Column (Image Container) */}
               <div className="w-full flex flex-col items-center justify-start">
                 <div className="w-full max-w-lg rounded-2xl overflow-hidden shadow-sm bg-white border border-slate-100 p-2 relative group">
@@ -982,22 +984,22 @@ function App() {
                     return (
                       <>
                         <img src={resolveImageUrl(displayImage)} alt={selectedProduct.title} className="w-full h-auto max-h-[60vh] object-contain rounded-[1.5rem] transition-all duration-300" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80' }} />
-                        
+
                         {images.length > 1 && (
                           <>
-                            <button 
+                            <button
                               onClick={(e) => { e.stopPropagation(); setDetailsImageIndex(prev => prev > 0 ? prev - 1 : images.length - 1); }}
                               className="absolute left-6 top-1/2 -translate-y-1/2 h-12 w-12 flex items-center justify-center rounded-full bg-white/80 text-slate-800 shadow-lg backdrop-blur hover:bg-white transition opacity-0 group-hover:opacity-100"
                             >
                               <span className="text-3xl font-medium leading-none pb-1">&#8249;</span>
                             </button>
-                            <button 
+                            <button
                               onClick={(e) => { e.stopPropagation(); setDetailsImageIndex(prev => prev < images.length - 1 ? prev + 1 : 0); }}
                               className="absolute right-6 top-1/2 -translate-y-1/2 h-12 w-12 flex items-center justify-center rounded-full bg-white/80 text-slate-800 shadow-lg backdrop-blur hover:bg-white transition opacity-0 group-hover:opacity-100"
                             >
                               <span className="text-3xl font-medium leading-none pb-1">&#8250;</span>
                             </button>
-                            
+
                             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
                               {images.map((_, idx) => (
                                 <button key={idx} onClick={() => setDetailsImageIndex(idx)} className={`h-2.5 rounded-full transition-all ${detailsImageIndex === idx ? 'w-8 bg-orange-500' : 'w-2.5 bg-slate-300 hover:bg-slate-400'}`} />
@@ -1020,13 +1022,13 @@ function App() {
                     <p className="text-4xl font-black text-orange-500">Rs. {formatPrice(selectedProduct.price)}</p>
                   </div>
                 </div>
-                
+
                 <div className="h-px w-full bg-slate-100"></div>
-                
+
                 <div className="prose prose-slate prose-lg">
                   <p className="text-slate-600 leading-relaxed">{selectedProduct.description}</p>
                 </div>
-                
+
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6 space-y-6">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold uppercase tracking-wider text-slate-500">Availability</span>
@@ -1038,11 +1040,11 @@ function App() {
                       )}
                     </span>
                   </div>
-                  
-                  <button 
-                    type="button" 
-                    disabled={selectedProduct.stock <= 0} 
-                    onClick={() => handleAddToCart(selectedProduct)} 
+
+                  <button
+                    type="button"
+                    disabled={selectedProduct.stock <= 0}
+                    onClick={() => handleAddToCart(selectedProduct)}
                     className="w-full flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-orange-500 via-rose-500 to-amber-500 px-8 py-5 text-xl font-black text-white shadow-xl shadow-orange-200/50 hover:scale-[1.02] hover:shadow-2xl hover:shadow-orange-300/50 transition-all active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
                   >
                     <ShoppingCart className="h-6 w-6" /> Add to Cart
@@ -1083,15 +1085,15 @@ function App() {
                     <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><MessageSquare className="h-32 w-32" /></div>
                     <h4 className="font-bold text-xl text-slate-900 mb-6 relative z-10">Write a Review</h4>
                     <div className="space-y-5 relative z-10">
-                      <input required type="text" placeholder="Your Name" value={reviewForm.customerName} onChange={e => setReviewForm({...reviewForm, customerName: e.target.value})} className="w-full rounded-xl border border-white/60 bg-white/80 px-4 py-3 outline-none focus:border-orange-400 focus:bg-white transition shadow-sm" />
-                      <select value={reviewForm.rating} onChange={e => setReviewForm({...reviewForm, rating: Number(e.target.value)})} className="w-full rounded-xl border border-white/60 bg-white/80 px-4 py-3 outline-none focus:border-orange-400 focus:bg-white transition shadow-sm">
+                      <input required type="text" placeholder="Your Name" value={reviewForm.customerName} onChange={e => setReviewForm({ ...reviewForm, customerName: e.target.value })} className="w-full rounded-xl border border-white/60 bg-white/80 px-4 py-3 outline-none focus:border-orange-400 focus:bg-white transition shadow-sm" />
+                      <select value={reviewForm.rating} onChange={e => setReviewForm({ ...reviewForm, rating: Number(e.target.value) })} className="w-full rounded-xl border border-white/60 bg-white/80 px-4 py-3 outline-none focus:border-orange-400 focus:bg-white transition shadow-sm">
                         <option value={5}>5 Stars - Excellent</option>
                         <option value={4}>4 Stars - Very Good</option>
                         <option value={3}>3 Stars - Average</option>
                         <option value={2}>2 Stars - Poor</option>
                         <option value={1}>1 Star - Terrible</option>
                       </select>
-                      <textarea required placeholder="Your Comment" rows={3} value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment: e.target.value})} className="w-full rounded-xl border border-white/60 bg-white/80 px-4 py-3 outline-none resize-none focus:border-orange-400 focus:bg-white transition shadow-sm" />
+                      <textarea required placeholder="Your Comment" rows={3} value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })} className="w-full rounded-xl border border-white/60 bg-white/80 px-4 py-3 outline-none resize-none focus:border-orange-400 focus:bg-white transition shadow-sm" />
                       <button type="submit" disabled={isReviewSubmitting} className="w-full rounded-xl bg-slate-900 py-3.5 font-bold text-white shadow-lg hover:bg-slate-800 disabled:opacity-70 transition">
                         {isReviewSubmitting ? 'Submitting...' : 'Submit Review'}
                       </button>
@@ -1105,16 +1107,10 @@ function App() {
           // --- Store View ---
           <>
             {!searchQuery && (
-              <section className="relative w-full overflow-hidden bg-white -mt-8 mb-12 shadow-sm border-b border-slate-100">
-                <div className="relative w-full mx-auto flex items-center justify-center">
-                  
-                  {/* Central Image */}
-                  <div className="relative z-10 w-full flex justify-center" data-aos="zoom-in" data-aos-duration="1500">
-                    <img src={heroImg} alt="Gift Box" className="w-full h-auto object-cover mix-blend-multiply" />
-                  </div>
-                  
-                </div>
-              </section>
+              <>
+                <MalkiGiftHero />
+                <GiftUnboxingCanvas />
+              </>
             )}
 
             {/* Category Tabs */}
@@ -1124,11 +1120,10 @@ function App() {
                   <button
                     key={idx}
                     onClick={() => setActiveCategory(cat)}
-                    className={`rounded-full px-6 py-2.5 text-sm font-bold transition-all shadow-sm ${
-                      activeCategory === cat
+                    className={`rounded-full px-6 py-2.5 text-sm font-bold transition-all shadow-sm ${activeCategory === cat
                         ? 'bg-slate-900 text-white shadow-slate-200 hover:bg-slate-800'
                         : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-orange-200 hover:text-orange-500'
-                    }`}
+                      }`}
                   >
                     {cat}
                   </button>
@@ -1157,14 +1152,14 @@ function App() {
               ) : (
                 <div className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {filteredProducts.map((product) => (
-                    <StoreProductCard 
-                      key={product?._id ?? product?.id ?? product?.title} 
-                      product={product} 
-                      onSelect={(p) => { 
-                        setSelectedProduct(p); 
-                        setDetailsImageIndex(0); 
-                        window.scrollTo(0, 0); 
-                      }} 
+                    <StoreProductCard
+                      key={product?._id ?? product?.id ?? product?.title}
+                      product={product}
+                      onSelect={(p) => {
+                        setSelectedProduct(p);
+                        setDetailsImageIndex(0);
+                        window.scrollTo(0, 0);
+                      }}
                       onAddToCart={handleAddToCart}
                       resolveImageUrl={resolveImageUrl}
                       formatPrice={formatPrice}
