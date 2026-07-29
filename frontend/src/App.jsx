@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
-import { BadgeCheck, Search, ShoppingCart, Sparkles, Truck, UserCircle, X, Edit, Trash2, ImagePlus, LayoutDashboard, FolderKanban, PlusCircle, ShoppingBag, MessageSquare, Settings, ShieldAlert, Menu, Play } from 'lucide-react'
+import { BadgeCheck, Search, ShoppingCart, Sparkles, Truck, UserCircle, X, Edit, Trash2, ImagePlus, LayoutDashboard, FolderKanban, PlusCircle, ShoppingBag, MessageSquare, Settings, ShieldAlert, Menu, Play, CheckCircle2, Info, AlertTriangle } from 'lucide-react'
 import logo from './assets/logo.png'
 import heroImg from './assets/hero.png'
 import MalkiGiftHero from './components/MalkiGiftHero'
@@ -44,9 +44,9 @@ const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, for
   const stock = Number(product?.stock) || 0
   const isInStock = stock > 0
   
-  // Simulated original price for UI demonstration
   const currentPrice = Number(product?.price) || 0;
-  const originalPrice = product?.originalPrice ? Number(product.originalPrice) : currentPrice * 1.6;
+  const reviewCount = Array.isArray(product?.reviews) ? product.reviews.length : 0;
+  const avgRating = reviewCount > 0 ? Math.round(product.reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviewCount) : 0;
 
   return (
     <article data-aos="fade-up" className="group flex flex-col bg-white overflow-hidden hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-shadow duration-200" onClick={() => onSelect(product)}>
@@ -64,19 +64,20 @@ const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, for
                 <span className="text-[10px] font-bold text-gray-900">LKR</span>
                 <span className="text-base font-bold tracking-tight text-gray-900">{formatPrice(currentPrice)}</span>
               </div>
-              <span className="text-[10px] text-gray-400 line-through">{formatPrice(originalPrice)}</span>
-              <span className="text-[10px] text-gray-500">1M+ sold</span>
+              <span className={`text-[10px] ${isInStock ? 'text-gray-500' : 'text-rose-500 font-semibold'}`}>
+                {isInStock ? `${stock} in stock` : 'Out of stock'}
+              </span>
             </div>
             
             <div className="flex items-center gap-1 text-[10px]">
-              <div className="flex text-gray-800">
+              <div className="flex text-amber-400">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <svg key={star} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+                  <svg key={star} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={star <= avgRating ? "currentColor" : "none"} stroke="currentColor" strokeWidth={star <= avgRating ? "0" : "2"} className="w-3 h-3 text-amber-400">
                     <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
                   </svg>
                 ))}
               </div>
-              <span className="text-gray-500">126,339</span>
+              <span className="text-gray-500">{reviewCount} reviews</span>
             </div>
           </div>
 
@@ -112,6 +113,7 @@ function App() {
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [orderSearch, setOrderSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [orderSortBy, setOrderSortBy] = useState('Newest')
 
   // Admin Data State
   const [categories, setCategories] = useState([])
@@ -126,11 +128,20 @@ function App() {
   const [productImages, setProductImages] = useState([])
   const [editingProductId, setEditingProductId] = useState(null)
   const [isProductSubmitting, setIsProductSubmitting] = useState(false)
-  const [productToDelete, setProductToDelete] = useState(null)
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false)
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false)
+  const [adminCategoryFilter, setAdminCategoryFilter] = useState('All')
+  const [adminSearchQuery, setAdminSearchQuery] = useState('')
+  const [adminStockFilter, setAdminStockFilter] = useState('All')
+  const [adminSortBy, setAdminSortBy] = useState('Default')
+  const [modalConfig, setModalConfig] = useState(null)
+  const showAlert = (type, title, message, onConfirm = null, confirmText = 'OK', cancelText = 'Cancel') => {
+    setModalConfig({ type, title, message, onConfirm, confirmText, cancelText })
+  }
 
   // Product Details State
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [lastScrollPosition, setLastScrollPosition] = useState(0)
   const [detailsImageIndex, setDetailsImageIndex] = useState(0)
   const [reviewForm, setReviewForm] = useState({ customerName: '', rating: 5, comment: '' })
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false)
@@ -153,9 +164,9 @@ function App() {
       setSelectedProduct(res.data)
       setProducts(products.map(p => (p._id || p.id) === id ? res.data : p))
       setReviewForm({ customerName: '', rating: 5, comment: '' })
-      alert('Review submitted successfully!')
+      showAlert('success', 'Success', 'Review submitted successfully!')
     } catch (error) {
-      alert('Failed to submit review')
+      showAlert('error', 'Error', 'Failed to submit review')
     } finally {
       setIsReviewSubmitting(false)
     }
@@ -222,13 +233,24 @@ function App() {
   const inStockCount = products.filter((product) => Number(product?.stock) > 0).length
 
   const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
+    let result = orders.filter(order => {
       const matchesSearch = order.customerName?.toLowerCase().includes(orderSearch.toLowerCase()) ||
-        order.phone?.includes(orderSearch)
+        order.phone?.includes(orderSearch) ||
+        order._id?.toLowerCase().includes(orderSearch.toLowerCase())
       const matchesStatus = statusFilter === 'All' || order.status === statusFilter
       return matchesSearch && matchesStatus
     })
-  }, [orders, orderSearch, statusFilter])
+
+    result.sort((a, b) => {
+      if (orderSortBy === 'Newest') return new Date(b.createdAt) - new Date(a.createdAt);
+      if (orderSortBy === 'Oldest') return new Date(a.createdAt) - new Date(b.createdAt);
+      if (orderSortBy === 'Highest Total') return Number(b.totalAmount) - Number(a.totalAmount);
+      if (orderSortBy === 'Lowest Total') return Number(a.totalAmount) - Number(b.totalAmount);
+      return 0;
+    })
+
+    return result;
+  }, [orders, orderSearch, statusFilter, orderSortBy])
 
   // Cart logic
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0)
@@ -252,7 +274,7 @@ function App() {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault()
-    if (cartItems.length === 0) return alert("Your cart is empty!")
+    if (cartItems.length === 0) return showAlert('info', 'Notice', 'Your cart is empty!')
     setIsSubmitting(true)
     try {
       const deliveryFee = province === 'Western' ? 350 : 450
@@ -272,7 +294,7 @@ function App() {
         deliveryFee: deliveryFee
       }
       await axios.post(ORDERS_URL, orderData)
-      alert('🎉 Order placed successfully! Thank you.')
+      showAlert('success', 'Order Placed!', '🎉 Order placed successfully! Thank you.')
       setCartItems([])
       setIsCheckingOut(false)
       setIsCartOpen(false)
@@ -287,7 +309,7 @@ function App() {
         axios.get(ORDERS_URL).then(res => setOrders(res.data)).catch(() => { })
       }
     } catch (error) {
-      alert(`Checkout failed: ${error.response?.data?.message || 'Please try again.'}`)
+      showAlert('error', 'Checkout Failed', error.response?.data?.message || 'Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -298,11 +320,10 @@ function App() {
       await axios.put(`${ORDERS_URL}/${orderId}/status`, { status: newStatus })
       setOrders(orders.map(order => order._id === orderId ? { ...order, status: newStatus } : order))
     } catch (error) {
-      alert('Failed to update order status. Please try again.')
+      showAlert('error', 'Error', 'Failed to update order status. Please try again.')
     }
   }
 
-  // Admin Handlers
   const handleAddCategory = async (e) => {
     e.preventDefault()
     if (!newCategory.trim()) return
@@ -310,19 +331,21 @@ function App() {
       const res = await axios.post(CATEGORIES_URL, { name: newCategory })
       setCategories([res.data, ...categories])
       setNewCategory('')
+      setIsAddCategoryModalOpen(false)
     } catch (error) {
-      alert('Failed to add category')
+      showAlert('error', 'Error', 'Failed to add category')
     }
   }
 
-  const handleDeleteCategory = async (id) => {
-    if (!window.confirm("Delete this category?")) return
-    try {
-      await axios.delete(`${CATEGORIES_URL}/${id}`)
-      setCategories(categories.filter(c => c._id !== id))
-    } catch (error) {
-      alert('Failed to delete category')
-    }
+  const handleDeleteCategory = (id) => {
+    showAlert('danger', 'Delete Category?', 'Are you sure you want to permanently delete this category? This action cannot be undone.', async () => {
+      try {
+        await axios.delete(`${CATEGORIES_URL}/${id}`)
+        setCategories(categories.filter(c => c._id !== id))
+      } catch (error) {
+        showAlert('error', 'Error', 'Failed to delete category')
+      }
+    }, 'Delete')
   }
 
   const handleReplyFeedback = async (id) => {
@@ -332,9 +355,9 @@ function App() {
       const res = await axios.put(`${FEEDBACK_URL}/${id}/reply`, { reply })
       setFeedback(feedback.map(f => f._id === id ? res.data : f))
       setReplyText(prev => ({ ...prev, [id]: '' }))
-      alert('Reply saved!')
+      showAlert('success', 'Success', 'Reply saved!')
     } catch (error) {
-      alert('Failed to save reply')
+      showAlert('error', 'Error', 'Failed to save reply')
     }
   }
 
@@ -342,24 +365,24 @@ function App() {
     e.preventDefault()
     try {
       await axios.put(SETTINGS_URL, storeSettings)
-      alert('Settings saved successfully!')
+      showAlert('success', 'Success', 'Settings saved successfully!')
     } catch (error) {
-      alert('Failed to save settings')
+      showAlert('error', 'Error', 'Failed to save settings')
     }
   }
 
   const handleChangePassword = async (e) => {
     e.preventDefault()
-    if (securityData.newPassword !== securityData.confirmPassword) return alert("Passwords don't match!")
+    if (securityData.newPassword !== securityData.confirmPassword) return showAlert('error', 'Error', "Passwords don't match!")
     try {
       await axios.post(ADMIN_SECURITY_URL, {
         currentPassword: securityData.currentPassword,
         newPassword: securityData.newPassword
       })
-      alert('Password updated successfully!')
+      showAlert('success', 'Success', 'Password updated successfully!')
       setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' })
     } catch (error) {
-      alert('Failed to update password')
+      showAlert('error', 'Error', 'Failed to update password')
     }
   }
 
@@ -379,10 +402,10 @@ function App() {
 
       if (editingProductId) {
         await axios.put(`${PRODUCTS_URL}/${editingProductId}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-        alert('Product updated successfully!')
+        showAlert('success', 'Success', 'Product updated successfully!')
       } else {
         await axios.post(PRODUCTS_URL, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-        alert('Product added successfully!')
+        showAlert('success', 'Success', 'Product added successfully!')
       }
       const response = await axios.get(PRODUCTS_URL)
       setProducts(Array.isArray(response.data) ? response.data : [])
@@ -391,7 +414,7 @@ function App() {
       setEditingProductId(null)
       setIsAddProductModalOpen(false)
     } catch (error) {
-      alert(`Save failed: ${error.response?.data?.message || 'Please try again.'}`)
+      showAlert('error', 'Error', error.response?.data?.message || 'Please try again.')
     } finally {
       setIsProductSubmitting(false)
     }
@@ -412,18 +435,14 @@ function App() {
   }
 
   const handleDeleteProduct = (id) => {
-    setProductToDelete(id)
-  }
-
-  const executeDeleteProduct = async () => {
-    if (!productToDelete) return
-    try {
-      await axios.delete(`${PRODUCTS_URL}/${productToDelete}`)
-      setProducts(products.filter(p => (p._id || p.id) !== productToDelete))
-      setProductToDelete(null)
-    } catch (error) {
-      alert('Delete failed.')
-    }
+    showAlert('danger', 'Delete Product?', 'Are you sure you want to permanently delete this product? This action cannot be undone.', async () => {
+      try {
+        await axios.delete(`${PRODUCTS_URL}/${id}`)
+        setProducts(products.filter(p => (p._id || p.id) !== id))
+      } catch (error) {
+        showAlert('error', 'Error', 'Delete failed.')
+      }
+    }, 'Delete')
   }
 
   return (
@@ -744,11 +763,15 @@ function App() {
 
               {adminTab === 'categories' && (
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)] mt-6">
-                  <h2 className="text-3xl font-black text-slate-900 mb-8">Manage Categories</h2>
-                  <form onSubmit={handleAddCategory} className="flex gap-4 mb-8 max-w-xl">
-                    <input required type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="New Category Name" className="border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-orange-500 text-sm w-full max-w-sm" />
-                    <button type="submit" className="rounded-xl bg-slate-900 px-6 py-2.5 font-bold text-white hover:bg-slate-800 transition-all shadow-sm">Add Category</button>
-                  </form>
+                  <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                    <h2 className="text-3xl font-black text-slate-900">Manage Categories</h2>
+                    <button 
+                      onClick={() => setIsAddCategoryModalOpen(true)}
+                      className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-md shadow-orange-200 hover:bg-orange-600 hover:shadow-orange-300 transition-all active:scale-[0.98]"
+                    >
+                      <PlusCircle className="h-5 w-5" /> Add New Category
+                    </button>
+                  </div>
                   <div className="max-w-xl">
                     {categories.map(cat => (
                       <div key={cat._id} className="border-b border-slate-50 last:border-none py-3.5 px-2 hover:bg-slate-50/50 rounded-xl flex justify-between items-center text-slate-700 transition-colors">
@@ -763,7 +786,7 @@ function App() {
 
               {adminTab === 'add-item' && (
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)] mt-6">
-                  <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                  <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <h2 className="text-3xl font-black text-slate-900">Manage Products</h2>
                     <button 
                       onClick={() => { 
@@ -776,6 +799,50 @@ function App() {
                     >
                       <PlusCircle className="h-5 w-5" /> Add New Product
                     </button>
+                  </div>
+                  
+                  {/* Admin Product Filters */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input 
+                        type="text" 
+                        placeholder="Search products..." 
+                        value={adminSearchQuery}
+                        onChange={e => setAdminSearchQuery(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-100 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all"
+                      />
+                    </div>
+                    <select 
+                      value={adminCategoryFilter} 
+                      onChange={e => setAdminCategoryFilter(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-100 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all cursor-pointer"
+                    >
+                      <option value="All">All Categories</option>
+                      {categories.map(cat => (
+                        <option key={cat._id} value={cat.name}>{cat.name}</option>
+                      ))}
+                    </select>
+                    <select 
+                      value={adminStockFilter} 
+                      onChange={e => setAdminStockFilter(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-100 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all cursor-pointer"
+                    >
+                      <option value="All">All Stock Levels</option>
+                      <option value="In Stock">In Stock (&gt;10)</option>
+                      <option value="Low Stock">Low Stock (1-10)</option>
+                      <option value="Out of Stock">Out of Stock (0)</option>
+                    </select>
+                    <select 
+                      value={adminSortBy} 
+                      onChange={e => setAdminSortBy(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-100 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all cursor-pointer"
+                    >
+                      <option value="Default">Default Order</option>
+                      <option value="Alphabetical">Alphabetical A-Z</option>
+                      <option value="Price: Low to High">Price: Low to High</option>
+                      <option value="Price: High to Low">Price: High to Low</option>
+                    </select>
                   </div>
                   
                   <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
@@ -791,7 +858,23 @@ function App() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                          {products.map(p => (
+                          {products
+                            .filter(p => adminCategoryFilter === 'All' || p.category === adminCategoryFilter)
+                            .filter(p => adminSearchQuery === '' || p.title.toLowerCase().includes(adminSearchQuery.toLowerCase()))
+                            .filter(p => {
+                              if (adminStockFilter === 'All') return true;
+                              if (adminStockFilter === 'In Stock') return p.stock > 10;
+                              if (adminStockFilter === 'Low Stock') return p.stock > 0 && p.stock <= 10;
+                              if (adminStockFilter === 'Out of Stock') return p.stock === 0 || p.stock === '0';
+                              return true;
+                            })
+                            .sort((a, b) => {
+                              if (adminSortBy === 'Price: Low to High') return Number(a.price) - Number(b.price);
+                              if (adminSortBy === 'Price: High to Low') return Number(b.price) - Number(a.price);
+                              if (adminSortBy === 'Alphabetical') return a.title.localeCompare(b.title);
+                              return 0;
+                            })
+                            .map(p => (
                             <tr key={p._id || p.id} className="hover:bg-slate-50/50 transition-colors">
                               <td className="px-6 py-4">
                                 <img src={resolveImageUrl(p.images?.[0] || p.image)} alt={p.title} className="h-12 w-12 rounded-lg border border-slate-100 object-cover shadow-sm bg-white" />
@@ -824,23 +907,36 @@ function App() {
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)] mt-6">
                   <h2 className="text-3xl font-black text-slate-900 mb-8">Order Management</h2>
 
-                  <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <input
-                      type="text"
-                      placeholder="Search by customer name or phone..."
-                      value={orderSearch}
-                      onChange={(e) => setOrderSearch(e.target.value)}
-                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Search order ID, name or phone..."
+                        value={orderSearch}
+                        onChange={(e) => setOrderSearch(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-100 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all"
+                      />
+                    </div>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full sm:w-48 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-100 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all cursor-pointer"
                     >
                       <option value="All">All Statuses</option>
                       <option value="Pending">Pending</option>
                       <option value="Shipped">Shipped</option>
                       <option value="Delivered">Delivered</option>
+                    </select>
+                    <select
+                      value={orderSortBy}
+                      onChange={(e) => setOrderSortBy(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none hover:bg-slate-100 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all cursor-pointer"
+                    >
+                      <option value="Newest">Newest First</option>
+                      <option value="Oldest">Oldest First</option>
+                      <option value="Highest Total">Highest Total</option>
+                      <option value="Lowest Total">Lowest Total</option>
                     </select>
                   </div>
 
@@ -852,7 +948,8 @@ function App() {
                             <th className="px-6 py-4 font-bold">Date</th>
                             <th className="px-6 py-4 font-bold">Customer</th>
                             <th className="px-6 py-4 font-bold">Total</th>
-                            <th className="px-6 py-4 font-bold">Status & Actions</th>
+                            <th className="px-6 py-4 font-bold">Status</th>
+                            <th className="px-6 py-4 font-bold text-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -865,8 +962,10 @@ function App() {
                               </td>
                               <td className="px-6 py-5 font-black text-slate-900">Rs. {formatPrice(order.totalAmount)}</td>
                               <td className="px-6 py-5">
-                                <div className="flex items-center gap-3">
-                                  <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold ${getStatusBadge(order.status)} shadow-sm`}>{order.status}</span>
+                                <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold ${getStatusBadge(order.status)} shadow-sm`}>{order.status}</span>
+                              </td>
+                              <td className="px-6 py-5 text-right">
+                                <div className="flex justify-end gap-2">
                                   {order.status === 'Pending' && <button onClick={() => handleUpdateOrderStatus(order._id, 'Shipped')} className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full transition-colors hover:bg-blue-100">Mark Shipped</button>}
                                   {order.status === 'Shipped' && <button onClick={() => handleUpdateOrderStatus(order._id, 'Delivered')} className="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full transition-colors hover:bg-emerald-100">Mark Delivered</button>}
                                 </div>
@@ -962,7 +1061,7 @@ function App() {
           <div className="w-full min-h-[calc(100vh-80px)] bg-[#FFFDF9] flex flex-col">
             {/* Sub-Navigation Bar */}
             <div className="w-full max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-start items-center border-b border-slate-100">
-              <button onClick={() => setSelectedProduct(null)} className="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-full shadow-sm flex items-center justify-center transition-all cursor-pointer group hover:scale-105 active:scale-95" title="Back to Shop">
+              <button onClick={() => { setSelectedProduct(null); setTimeout(() => window.scrollTo({ top: lastScrollPosition, behavior: 'instant' }), 0); }} className="p-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-full shadow-sm flex items-center justify-center transition-all cursor-pointer group hover:scale-105 active:scale-95" title="Back to Shop">
                 <span className="text-xl leading-none font-medium text-slate-500 group-hover:text-slate-900 transition-colors">&#8592;</span>
               </button>
             </div>
@@ -1151,6 +1250,7 @@ function App() {
                       key={product?._id ?? product?.id ?? product?.title}
                       product={product}
                       onSelect={(p) => {
+                        setLastScrollPosition(window.scrollY);
                         setSelectedProduct(p);
                         setDetailsImageIndex(0);
                         window.scrollTo(0, 0);
@@ -1167,31 +1267,118 @@ function App() {
         )}
       </main>
 
-      {/* Delete Confirmation Modal */}
-      {productToDelete && (
+      {/* Global Custom Modal */}
+      {modalConfig && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="mb-6 flex flex-col items-center text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-                <Trash2 className="h-6 w-6" />
+              <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-full ${
+                modalConfig.type === 'danger' || modalConfig.type === 'error' ? 'bg-rose-100 text-rose-600' :
+                modalConfig.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+              }`}>
+                {modalConfig.type === 'danger' || modalConfig.type === 'error' ? <Trash2 className="h-6 w-6" /> :
+                 modalConfig.type === 'success' ? <CheckCircle2 className="h-6 w-6" /> : <Info className="h-6 w-6" />}
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Delete Product?</h3>
+              <h3 className="text-xl font-bold text-slate-900">{modalConfig.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Are you sure you want to permanently delete this product? This action cannot be undone.
+                {modalConfig.message}
               </p>
             </div>
             <div className="flex gap-3">
+              {(modalConfig.type === 'danger' || modalConfig.type === 'confirm') && (
+                <button 
+                  onClick={() => setModalConfig(null)}
+                  className="flex-1 rounded-xl border border-slate-200 bg-white py-3 font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                >
+                  {modalConfig.cancelText || 'Cancel'}
+                </button>
+              )}
               <button 
-                onClick={() => setProductToDelete(null)}
-                className="flex-1 rounded-xl border border-slate-200 bg-white py-3 font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                onClick={async () => {
+                  if (modalConfig.onConfirm) await modalConfig.onConfirm();
+                  setModalConfig(null);
+                }}
+                className={`flex-1 rounded-xl py-3 font-bold text-white shadow-lg transition-all active:scale-[0.98] ${
+                  modalConfig.type === 'danger' || modalConfig.type === 'error' ? 'bg-rose-600 shadow-rose-200 hover:bg-rose-700 hover:shadow-rose-300' :
+                  modalConfig.type === 'success' ? 'bg-emerald-600 shadow-emerald-200 hover:bg-emerald-700 hover:shadow-emerald-300' :
+                  'bg-blue-600 shadow-blue-200 hover:bg-blue-700 hover:shadow-blue-300'
+                }`}
               >
-                Cancel
+                {modalConfig.confirmText || 'OK'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Category Modal */}
+      {isAddCategoryModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mb-6 flex flex-col items-center text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                <PlusCircle className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">Add New Category</h3>
+            </div>
+            <form onSubmit={handleAddCategory} className="space-y-4">
+              <input required type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="Category Name" className="border border-slate-200 bg-slate-50 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 focus:bg-white text-sm w-full transition-colors" />
+              <div className="flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setIsAddCategoryModalOpen(false)}
+                  className="flex-1 rounded-xl border border-slate-200 bg-white py-3 font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 rounded-xl bg-slate-900 py-3 font-bold text-white shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-[0.98]"
+                >
+                  Add Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {modalConfig && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mb-6 flex flex-col items-center text-center">
+              <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-full ${
+                modalConfig.type === 'danger' || modalConfig.type === 'error' ? 'bg-rose-100 text-rose-600' :
+                modalConfig.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+              }`}>
+                {modalConfig.type === 'danger' || modalConfig.type === 'error' ? <Trash2 className="h-6 w-6" /> :
+                 modalConfig.type === 'success' ? <CheckCircle2 className="h-6 w-6" /> : <Info className="h-6 w-6" />}
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">{modalConfig.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                {modalConfig.message}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              {(modalConfig.type === 'danger' || modalConfig.type === 'confirm') && (
+                <button 
+                  onClick={() => setModalConfig(null)}
+                  className="flex-1 rounded-xl border border-slate-200 bg-white py-3 font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                >
+                  {modalConfig.cancelText || 'Cancel'}
+                </button>
+              )}
               <button 
-                onClick={executeDeleteProduct}
-                className="flex-1 rounded-xl bg-rose-600 py-3 font-bold text-white shadow-lg shadow-rose-200 hover:bg-rose-700 hover:shadow-rose-300 transition-all active:scale-[0.98]"
+                onClick={async () => {
+                  if (modalConfig.onConfirm) await modalConfig.onConfirm();
+                  setModalConfig(null);
+                }}
+                className={`flex-1 rounded-xl py-3 font-bold text-white shadow-lg transition-all active:scale-[0.98] ${
+                  modalConfig.type === 'danger' || modalConfig.type === 'error' ? 'bg-rose-600 shadow-rose-200 hover:bg-rose-700 hover:shadow-rose-300' :
+                  modalConfig.type === 'success' ? 'bg-emerald-600 shadow-emerald-200 hover:bg-emerald-700 hover:shadow-emerald-300' :
+                  'bg-blue-600 shadow-blue-200 hover:bg-blue-700 hover:shadow-blue-300'
+                }`}
               >
-                Delete
+                {modalConfig.confirmText || 'OK'}
               </button>
             </div>
           </div>
