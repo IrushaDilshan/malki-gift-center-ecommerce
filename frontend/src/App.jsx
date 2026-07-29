@@ -38,53 +38,50 @@ function getStatusBadge(status) {
 }
 
 const StoreProductCard = ({ product, onSelect, onAddToCart, resolveImageUrl, formatPrice }) => {
-  const [activeImgIndex, setActiveImgIndex] = useState(0)
-
   const images = Array.isArray(product?.images) && product.images.length > 0 ? product.images : (product?.image ? [product.image] : (typeof product?.images === 'string' ? [product.images] : []))
-  const displayImage = images[activeImgIndex] || images[0]
+  const displayImage = images[0]
 
   const stock = Number(product?.stock) || 0
   const isInStock = stock > 0
+  
+  // Simulated original price for UI demonstration
+  const currentPrice = Number(product?.price) || 0;
+  const originalPrice = product?.originalPrice ? Number(product.originalPrice) : currentPrice * 1.6;
 
   return (
-    <article data-aos="fade-up" className="group flex flex-col overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/80 p-2.5 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 hover:shadow-[0_20px_40px_rgb(0,0,0,0.12)]">
-      <div className="relative overflow-hidden cursor-pointer h-64 shrink-0 rounded-[2rem]" onClick={() => onSelect(product)}>
-        <img src={resolveImageUrl(displayImage)} alt={product?.title ?? 'Gift product'} className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80' }} />
-
-        <div className="absolute top-4 left-4 z-10 pointer-events-none rounded-full bg-white/90 backdrop-blur-sm px-3.5 py-1.5 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-900">{product?.category ?? 'Gift'}</p>
-        </div>
-
-        <div className={`absolute top-4 right-4 z-10 pointer-events-none rounded-full backdrop-blur-sm px-3 py-1.5 shadow-sm inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase ${isInStock ? 'bg-emerald-50/90 text-emerald-700' : 'bg-rose-50/90 text-rose-700'}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${isInStock ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-          {isInStock ? 'In Stock' : 'Out'}
-        </div>
+    <article data-aos="fade-up" className="group flex flex-col bg-white overflow-hidden hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-shadow duration-200" onClick={() => onSelect(product)}>
+      <div className="relative overflow-hidden aspect-square shrink-0 bg-gray-50 cursor-pointer" onClick={(e) => { e.stopPropagation(); onSelect(product); }}>
+        <img src={resolveImageUrl(displayImage)} alt={product?.title ?? 'Gift product'} className="h-full w-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=900&q=80' }} />
       </div>
 
-      <div className="flex flex-col flex-1 px-4 py-5 sm:px-5">
-        {images.length > 1 && (
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-            {images.map((img, idx) => (
-              <button
-                key={idx}
-                onMouseEnter={() => setActiveImgIndex(idx)}
-                onClick={(e) => { e.stopPropagation(); setActiveImgIndex(idx); }}
-                className={`h-10 w-10 shrink-0 rounded-xl overflow-hidden transition-all duration-300 ${activeImgIndex === idx ? 'ring-2 ring-orange-400 ring-offset-2 opacity-100 scale-110' : 'ring-1 ring-slate-200 opacity-70 hover:opacity-100 hover:scale-105'}`}
-              >
-                <img src={resolveImageUrl(img)} alt={`Thumbnail ${idx}`} className="h-full w-full object-cover" />
-              </button>
-            ))}
+      <div className="flex flex-col flex-1 p-2.5">
+        <h3 className="line-clamp-1 text-[13px] leading-tight text-gray-700 mb-1.5 cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); onSelect(product); }}>{product?.title ?? 'Untitled Product'}</h3>
+        
+        <div className="flex items-end justify-between mt-auto gap-2">
+          <div className="flex flex-col flex-1 gap-1">
+            <div className="flex items-baseline gap-1.5 flex-wrap leading-none">
+              <div className="flex items-baseline gap-0.5">
+                <span className="text-[10px] font-bold text-gray-900">LKR</span>
+                <span className="text-base font-bold tracking-tight text-gray-900">{formatPrice(currentPrice)}</span>
+              </div>
+              <span className="text-[10px] text-gray-400 line-through">{formatPrice(originalPrice)}</span>
+              <span className="text-[10px] text-gray-500">1M+ sold</span>
+            </div>
+            
+            <div className="flex items-center gap-1 text-[10px]">
+              <div className="flex text-gray-800">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <svg key={star} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+                    <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                  </svg>
+                ))}
+              </div>
+              <span className="text-gray-500">126,339</span>
+            </div>
           </div>
-        )}
 
-        <div className="flex items-center justify-between mt-auto pt-2">
-          <div className="flex flex-col pr-4 flex-1">
-            <h3 className="line-clamp-1 text-lg font-extrabold tracking-tight text-slate-900 cursor-pointer hover:text-orange-500 transition-colors" onClick={() => onSelect(product)}>{product?.title ?? 'Untitled Product'}</h3>
-            <p className="line-clamp-1 text-xs leading-relaxed text-slate-500 font-medium mb-1.5">{product?.description ?? 'A beautifully curated gift.'}</p>
-            <p className="text-2xl font-black tracking-tight text-slate-900 mt-0.5"><span className="text-sm font-bold text-slate-400 mr-1.5">Rs.</span>{formatPrice(product?.price)}</p>
-          </div>
-          <button type="button" disabled={!isInStock} onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="md:w-12 md:h-12 w-11 h-11 flex shrink-0 items-center justify-center rounded-2xl bg-slate-100/80 text-slate-700 hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-200 transition-all duration-300 disabled:opacity-50">
-            <ShoppingCart className="h-5 w-5" />
+          <button type="button" disabled={!isInStock} onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="w-7 h-7 mb-1 flex shrink-0 items-center justify-center rounded-full border border-gray-900 bg-white text-gray-900 hover:bg-gray-100 transition-all duration-200 disabled:opacity-50">
+            <ShoppingCart className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -1105,7 +1102,7 @@ function App() {
           </div>
         ) : (
           // --- Store View ---
-          <>
+          <div className="w-full flex flex-col flex-1">
             {!searchQuery && (
               <>
                 <MalkiGiftHero />
@@ -1168,7 +1165,7 @@ function App() {
                 </div>
               )}
             </section>
-          </>
+          </div>
         )}
       </main>
     </div>

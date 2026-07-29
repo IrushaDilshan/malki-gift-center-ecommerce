@@ -110,61 +110,62 @@ export default function GiftUnboxingCanvas() {
       localImages.push(img);
     }
 
-    let tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: wrapperRef.current,
-        start: 'top top',
-        end: '+=400%',
-        scrub: 0.3,
-        pin: true,
-        anticipatePin: 1,
-        pinSpacing: true,
-        onUpdate: (self) => {
-          currentFrameIndex = Math.min(frameCount - 1, Math.max(0, Math.floor(self.progress * (frameCount - 1))));
-          renderCanvasFrame(currentFrameIndex, localImages);
+    let gsapCtx = gsap.context(() => {
+      let tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: wrapperRef.current,
+          start: 'top top',
+          end: '+=400%',
+          scrub: 0.3,
+          pin: true,
+          anticipatePin: 1,
+          pinSpacing: true,
+          onUpdate: (self) => {
+            currentFrameIndex = Math.min(frameCount - 1, Math.max(0, Math.floor(self.progress * (frameCount - 1))));
+            renderCanvasFrame(currentFrameIndex, localImages);
+          }
         }
-      }
+      });
+
+      // Dummy tween to stretch the timeline duration to 1 so the overlay fade happens at a relative percentage
+      tl.to({}, { duration: 1 });
+
+      tl.to(overlayRef.current, {
+        opacity: 0,
+        y: -30,
+        ease: 'none',
+        duration: 0.55
+      }, 0.25);
     });
-
-    // Dummy tween to stretch the timeline duration to 1 so the overlay fade happens at a relative percentage
-    tl.to({}, { duration: 1 });
-
-    tl.to(overlayRef.current, {
-      opacity: 0,
-      y: -30,
-      ease: 'none',
-      duration: 0.55
-    }, 0.25);
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      if (tl.scrollTrigger) {
-        tl.scrollTrigger.kill();
-      }
-      tl.kill();
+      gsapCtx.revert(); // Automatically cleans up and un-pins all ScrollTriggers properly!
     };
   }, []);
 
   return (
-    <section ref={wrapperRef} className="relative w-full h-screen bg-gradient-to-b from-[#707275] to-[#d0d1d4]">
-      
-      {/* Sticky Canvas Container */}
-      <div className="sticky top-0 w-full h-screen overflow-hidden bg-gradient-to-b from-[#707275] to-[#d0d1d4]">
+    <div className="w-full">
+      <section ref={wrapperRef} className="relative w-full h-screen bg-gradient-to-b from-[#707275] to-[#d0d1d4]">
         
-        {/* The Sequence Canvas */}
-        <canvas 
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full object-cover object-top"
-        />
+        {/* Sticky Canvas Container */}
+        <div className="sticky top-0 w-full h-screen overflow-hidden bg-gradient-to-b from-[#707275] to-[#d0d1d4]">
+          
+          {/* The Sequence Canvas */}
+          <canvas 
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full object-cover object-top"
+          />
 
-        {/* Overlay Content */}
-        <div ref={overlayRef} className="absolute inset-0 z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
+          {/* Overlay Content */}
+          <div ref={overlayRef} className="absolute inset-0 z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
+          </div>
+
         </div>
 
-      </div>
-
-      {/* Slide-over Drawer Overlay */}
-    </section>
+        {/* Slide-over Drawer Overlay */}
+      </section>
+    </div>
   );
 }
