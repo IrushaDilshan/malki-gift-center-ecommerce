@@ -126,6 +126,8 @@ function App() {
   const [productImages, setProductImages] = useState([])
   const [editingProductId, setEditingProductId] = useState(null)
   const [isProductSubmitting, setIsProductSubmitting] = useState(false)
+  const [productToDelete, setProductToDelete] = useState(null)
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false)
 
   // Product Details State
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -276,6 +278,11 @@ function App() {
       setIsCartOpen(false)
       setCheckoutForm({ customerName: '', phone: '', address: '' })
 
+      // Fetch updated products to reflect the newly deducted stock
+      axios.get(PRODUCTS_URL)
+        .then(res => setProducts(Array.isArray(res.data) ? res.data : []))
+        .catch(() => {})
+
       if (isAdminView) {
         axios.get(ORDERS_URL).then(res => setOrders(res.data)).catch(() => { })
       }
@@ -382,6 +389,7 @@ function App() {
       setProductForm({ title: '', description: '', price: '', category: '', stock: '' })
       setProductImages([])
       setEditingProductId(null)
+      setIsAddProductModalOpen(false)
     } catch (error) {
       alert(`Save failed: ${error.response?.data?.message || 'Please try again.'}`)
     } finally {
@@ -400,13 +408,19 @@ function App() {
     setEditingProductId(product._id || product.id)
     setProductImages([])
     setAdminTab('add-item')
+    setIsAddProductModalOpen(true)
   }
 
-  const handleDeleteProduct = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return
+  const handleDeleteProduct = (id) => {
+    setProductToDelete(id)
+  }
+
+  const executeDeleteProduct = async () => {
+    if (!productToDelete) return
     try {
-      await axios.delete(`${PRODUCTS_URL}/${id}`)
-      setProducts(products.filter(p => (p._id || p.id) !== id))
+      await axios.delete(`${PRODUCTS_URL}/${productToDelete}`)
+      setProducts(products.filter(p => (p._id || p.id) !== productToDelete))
+      setProductToDelete(null)
     } catch (error) {
       alert('Delete failed.')
     }
@@ -749,74 +763,58 @@ function App() {
 
               {adminTab === 'add-item' && (
                 <div className="bg-white rounded-2xl border border-slate-100 p-6 md:p-8 shadow-[0_2px_12px_rgba(0,0,0,0.03)] mt-6">
-                  <h2 className="text-3xl font-black text-slate-900 mb-8">Manage Products</h2>
-                  <div className="grid gap-10 xl:grid-cols-[400px_1fr]">
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-6 h-fit shadow-sm">
-                      <h3 className="text-lg font-bold text-slate-900 mb-6">{editingProductId ? 'Edit Product' : 'Add New Product'}</h3>
-                      <form onSubmit={handleProductSubmit} className="space-y-4">
-                        <input required type="text" value={productForm.title} onChange={e => setProductForm({ ...productForm, title: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Product Name" />
-                        <textarea required rows={3} value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none resize-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Product details..." />
-                        <div className="grid grid-cols-2 gap-4">
-                          <input required type="number" min="0" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Price" />
-                          <input required type="number" min="0" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white" placeholder="Stock" />
-                        </div>
-                        <select required value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} className="w-full rounded-xl border border-slate-200 p-2.5 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-white">
-                          <option value="">Select Category</option>
-                          {categories.map(cat => (
-                            <option key={cat._id} value={cat.name}>{cat.name}</option>
-                          ))}
-                        </select>
-
-                        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-4 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-                          <ImagePlus className="h-5 w-5" />
-                          <span className="truncate max-w-[200px]">{productImages.length > 0 ? `${productImages.length} file(s) selected` : (editingProductId ? 'Change Images (Optional)' : 'Upload Images')}</span>
-                          <input type="file" multiple name="images" accept="image/*" className="hidden" onChange={e => setProductImages(Array.from(e.target.files))} />
-                        </label>
-
-                        <div className="pt-4 flex gap-3">
-                          {editingProductId && (
-                            <button type="button" onClick={() => { setEditingProductId(null); setProductForm({ title: '', description: '', price: '', category: '', stock: '' }); setProductImage(null); }} className="flex-1 rounded-xl bg-slate-200 py-3 text-sm font-bold text-slate-700 hover:bg-slate-300 transition-colors">Cancel</button>
-                          )}
-                          <button type="submit" disabled={isProductSubmitting} className="flex-[2] rounded-xl bg-slate-900 py-3 text-sm font-bold text-white shadow hover:bg-slate-800 disabled:opacity-70 transition-colors">
-                            {isProductSubmitting ? 'Saving...' : (editingProductId ? 'Update' : 'Add')}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-
-                    <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-                      <div className="overflow-x-auto h-full max-h-[600px]">
-                        <table className="w-full text-left text-sm text-slate-600">
-                          <thead className="sticky top-0 bg-slate-50/80 backdrop-blur text-xs uppercase tracking-wider text-slate-500 border-b border-slate-100 z-10">
-                            <tr>
-                              <th className="px-6 py-4 font-bold">Image</th>
-                              <th className="px-6 py-4 font-bold">Title</th>
-                              <th className="px-6 py-4 font-bold">Details</th>
-                              <th className="px-6 py-4 font-bold text-right">Actions</th>
+                  <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                    <h2 className="text-3xl font-black text-slate-900">Manage Products</h2>
+                    <button 
+                      onClick={() => { 
+                        setEditingProductId(null); 
+                        setProductForm({ title: '', description: '', price: '', category: '', stock: '' }); 
+                        setProductImages([]);
+                        setIsAddProductModalOpen(true); 
+                      }} 
+                      className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-bold text-white shadow-md shadow-orange-200 hover:bg-orange-600 hover:shadow-orange-300 transition-all active:scale-[0.98]"
+                    >
+                      <PlusCircle className="h-5 w-5" /> Add New Product
+                    </button>
+                  </div>
+                  
+                  <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                    <div className="overflow-x-auto h-full max-h-[600px]">
+                      <table className="w-full text-left text-sm text-slate-600">
+                        <thead className="sticky top-0 bg-slate-50/80 backdrop-blur text-xs uppercase tracking-wider text-slate-500 border-b border-slate-100 z-10">
+                          <tr>
+                            <th className="px-6 py-4 font-bold">Image</th>
+                            <th className="px-6 py-4 font-bold">Title</th>
+                            <th className="px-6 py-4 font-bold">Price</th>
+                            <th className="px-6 py-4 font-bold">Stock</th>
+                            <th className="px-6 py-4 font-bold text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {products.map(p => (
+                            <tr key={p._id || p.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="px-6 py-4">
+                                <img src={resolveImageUrl(p.images?.[0] || p.image)} alt={p.title} className="h-12 w-12 rounded-lg border border-slate-100 object-cover shadow-sm bg-white" />
+                              </td>
+                              <td className="px-6 py-4 font-bold text-slate-900 max-w-[300px] truncate">{p.title}</td>
+                              <td className="px-6 py-4">
+                                <p className="font-bold text-slate-900">Rs. {formatPrice(p.price)}</p>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${p.stock > 10 ? 'bg-emerald-100 text-emerald-800' : p.stock > 0 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>
+                                  {p.stock} in stock
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-2">
+                                  <button onClick={() => handleEditClick(p)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
+                                  <button onClick={() => handleDeleteProduct(p._id || p.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                                </div>
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {products.map(p => (
-                              <tr key={p._id || p.id} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="px-6 py-4">
-                                  <img src={resolveImageUrl(p.images?.[0] || p.image)} alt={p.title} className="h-12 w-12 rounded-lg border border-slate-100 object-cover shadow-sm bg-white" />
-                                </td>
-                                <td className="px-6 py-4 font-bold text-slate-900 max-w-[200px] truncate">{p.title}</td>
-                                <td className="px-6 py-4">
-                                  <p className="font-bold text-slate-900">Rs. {formatPrice(p.price)}</p>
-                                  <span className="text-xs font-semibold text-slate-500">{p.stock} in stock</span>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  <div className="flex justify-end gap-2">
-                                    <button onClick={() => handleEditClick(p)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit className="h-4 w-4" /></button>
-                                    <button onClick={() => handleDeleteProduct(p._id || p.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
@@ -1168,6 +1166,76 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="mb-6 flex flex-col items-center text-center">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">Delete Product?</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                Are you sure you want to permanently delete this product? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setProductToDelete(null)}
+                className="flex-1 rounded-xl border border-slate-200 bg-white py-3 font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeDeleteProduct}
+                className="flex-1 rounded-xl bg-rose-600 py-3 font-bold text-white shadow-lg shadow-rose-200 hover:bg-rose-700 hover:shadow-rose-300 transition-all active:scale-[0.98]"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Product Modal */}
+      {isAddProductModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto py-10">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 md:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-2xl font-black text-slate-900 mb-6">{editingProductId ? 'Edit Product' : 'Add New Product'}</h3>
+            <form onSubmit={handleProductSubmit} className="space-y-5">
+              <input required type="text" value={productForm.title} onChange={e => setProductForm({ ...productForm, title: e.target.value })} className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-slate-50 focus:bg-white transition-colors" placeholder="Product Name" />
+              <textarea required rows={4} value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none resize-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-slate-50 focus:bg-white transition-colors" placeholder="Product details..." />
+              <div className="grid grid-cols-2 gap-4">
+                <input required type="number" min="0" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-slate-50 focus:bg-white transition-colors" placeholder="Price (Rs.)" />
+                <input required type="number" min="0" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: e.target.value })} className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-slate-50 focus:bg-white transition-colors" placeholder="Stock Quantity" />
+              </div>
+              <select required value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 bg-slate-50 focus:bg-white transition-colors cursor-pointer">
+                <option value="">Select Category</option>
+                {categories.map(cat => (
+                  <option key={cat._id} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
+
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:border-slate-300 hover:text-slate-700 transition-all">
+                <ImagePlus className="h-8 w-8 opacity-70 mb-1" />
+                <span className="truncate max-w-[200px] text-center font-bold">
+                  {productImages.length > 0 ? `${productImages.length} file(s) selected` : (editingProductId ? 'Change Images (Optional)' : 'Upload Images')}
+                </span>
+                <span className="text-xs text-slate-400 font-normal">Click to browse or drag and drop</span>
+                <input type="file" multiple name="images" accept="image/*" className="hidden" onChange={e => setProductImages(Array.from(e.target.files))} />
+              </label>
+
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => setIsAddProductModalOpen(false)} className="flex-1 rounded-xl bg-slate-100 py-3.5 text-sm font-bold text-slate-700 hover:bg-slate-200 transition-colors">Cancel</button>
+                <button type="submit" disabled={isProductSubmitting} className="flex-[2] rounded-xl bg-slate-900 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-200 hover:bg-slate-800 disabled:opacity-70 transition-colors">
+                  {isProductSubmitting ? 'Saving...' : (editingProductId ? 'Update Product' : 'Add Product')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
